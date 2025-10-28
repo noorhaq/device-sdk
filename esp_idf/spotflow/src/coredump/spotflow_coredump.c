@@ -64,6 +64,8 @@ esp_err_t display_coredump(void)
         return ESP_ERR_NOT_FOUND;
     }
 
+    coredump_addr = coredump_addr - part->address;
+    ESP_LOGI(TAG, "New address Coredump_Addr 0x%08X and partition Addr 0x%08X", coredump_addr, part->address);
     err = esp_partition_read(part, coredump_addr, coredump_data, coredump_size);
     if (err != ESP_OK) {
         free(coredump_data);
