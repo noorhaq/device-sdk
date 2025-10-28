@@ -36,8 +36,6 @@ void app_main(void)
     // ESP_ERROR_CHECK(example_connect());
 
     spotflow_init();
-    int a = 15/0;
-    ESP_LOGI(TAG,"%d",a);
     int test_num = 1;
     while(1)
     {
@@ -56,6 +54,8 @@ void app_main(void)
             ESP_LOGI(TAG, "[APP] Free memory: %" PRIu32 " bytes", esp_get_free_heap_size());
         }
         vTaskDelay(pdMS_TO_TICKS(500));
+            int a = 15/0;
+    ESP_LOGI(TAG, "%d", a);
     }
 
 }
