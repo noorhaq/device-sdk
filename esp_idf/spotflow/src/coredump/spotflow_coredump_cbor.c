@@ -32,12 +32,12 @@ int spotflow_cbor_encode_coredump(const uint8_t* coredump_data, size_t coredump_
 {
     CborEncoder array_encoder;
 
-	uint8_t *buf = malloc(CONFIG_SPOTFLOW_CBOR_LOG_MAX_LEN);
+	uint8_t *buf = malloc(CONFIG_SPOTFLOW_COREDUMPS_CHUNK_SIZE + COREDUMPS_OVERHEAD);
     if (!buf) {
         SPOTFLOW_LOG("Failed to allocate CBOR buffer");
         return NULL;
     }
-    cbor_encoder_init(&array_encoder, buf, CONFIG_SPOTFLOW_CBOR_LOG_MAX_LEN, 0);
+    cbor_encoder_init(&array_encoder, buf, CONFIG_SPOTFLOW_COREDUMPS_CHUNK_SIZE + COREDUMPS_OVERHEAD, 0);
 	cbor_encoder_create_map(&array_encoder, &map_encoder, 7); // {
 	
 	/* start outer map */
