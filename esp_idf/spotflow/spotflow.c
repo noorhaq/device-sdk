@@ -5,7 +5,7 @@
 #include "net/spotflow_mqtt.h"
 #include "logging/spotflow_log_backend.h"
 #include "logging/spotflow_log_queue.h"
-
+#include "coredump/spotflow_coredump.h"
 #include "spotflow.h"
 
 vprintf_like_t original_vprintf = NULL;
@@ -26,9 +26,13 @@ void Spotflow_Todo(void)
  */
 void spotflow_init(void)
 {
-    original_vprintf = esp_log_set_vprintf(spotflow_log_backend);
+    // original_vprintf = esp_log_set_vprintf(spotflow_log_backend);
 
     Spotflow_Todo(); //Checking for unused set Configs.
-    mqtt_app_start(); // Calling the mqtt_start from the init function.
-    queue_init(); //Initilize the queue
+    if(is_coredump_available())
+    {
+        display_coredump();
+    }
+    // mqtt_app_start(); // Calling the mqtt_start from the init function.
+    // queue_init(); //Initilize the queue
 }

@@ -4,11 +4,12 @@ set(SRCS
     "src/logging/spotflow_log_backend.c"
     "src/logging/spotflow_log_queue.c"
     "src/logging/spotflow_log_cbor.c"
+    "src/coredump/spotflow_coredump.c"
     "spotflow.c"
 )
 
 idf_component_register( SRCS ${SRCS}   
-                        PRIV_REQUIRES mqtt esp_partition nvs_flash esp_netif app_update espcoredump
+                        PRIV_REQUIRES mqtt esp_partition nvs_flash esp_netif app_update espcoredump esp_partition
                         INCLUDE_DIRS "include"
                         REQUIRES cbor
                         EMBED_TXTFILES x1_root.pem)
