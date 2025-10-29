@@ -47,7 +47,7 @@ esp_err_t display_coredump(void)
     }
 
     // Log the coredump information
-    ESP_LOGI(TAG, "Coredump address: 0x%08X, size: %d bytes", (unsigned int)coredump_addr, (int)coredump_size);
+    ESP_LOGI(TAG, "Coredump address: 0x%08X, size: 0x%08X bytes", (unsigned int)coredump_addr, (int)coredump_size);
 
     // Read the coredump from flash
     uint8_t *coredump_data = malloc(coredump_size);
@@ -75,13 +75,25 @@ esp_err_t display_coredump(void)
 
     // Display the coredump data (raw hex output)
     ESP_LOGI(TAG, "Coredump Data (Hex Dump):");
+    ESP_LOGI(TAG, "%s", coredump_data);
     for (size_t i = 0; i < coredump_size; i++) {
-        if (i % 16 == 0 && i > 0) {
+    if (i % 16 == 0) {
+        // Print ASCII section for the previous 16 bytes
+        if (i > 0) {
+            printf(" | ");
+            for (size_t j = i - 16; j < i; j++) {
+                uint8_t c = coredump_data[j];
+                printf("%c", (c >= 32 && c <= 126) ? c : '.');
+            }
             printf("\n");
         }
-        printf("%02X ", coredump_data[i]);
+        // Print address offset at the start of each line
+        printf("0x%08X: ", (unsigned)(coredump_addr + i));
     }
-    printf("\n");
+
+    // Print hex byte
+    printf("%02X ", coredump_data[i]);
+}
 
     free(coredump_data);
     return ESP_OK;
