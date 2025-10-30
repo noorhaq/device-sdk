@@ -17,9 +17,9 @@ vprintf_like_t original_vprintf = NULL;
  */
 void Spotflow_Todo(void)
 {
-    #ifdef SPOTFLOW_GENERATE_BUILD_ID
-    SPOTFLOW_LOG("Not implemented yet.\n");
-    #endif
+#ifdef SPOTFLOW_GENERATE_BUILD_ID
+	SPOTFLOW_LOG("Not implemented yet.\n");
+#endif
 }
 /**
  * @brief 
@@ -27,13 +27,12 @@ void Spotflow_Todo(void)
  */
 void spotflow_init(void)
 {
-    // original_vprintf = esp_log_set_vprintf(spotflow_log_backend);
+	// original_vprintf = esp_log_set_vprintf(spotflow_log_backend);
 
-    Spotflow_Todo(); //Checking for unused set Configs.
-    if(is_coredump_available())
-    {
-        spotflow_coredump_backend();
-    }
-    // mqtt_app_start(); // Calling the mqtt_start from the init function.
-    // queue_init(); //Initilize the queue
+	Spotflow_Todo(); //Checking for unused set Configs.
+	if (is_coredump_available()) {
+		spotflow_coredump_backend();
+	}
+	// mqtt_app_start(); // Calling the mqtt_start from the init function.
+	// queue_init(); //Initilize the queue
 }

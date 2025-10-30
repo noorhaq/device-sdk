@@ -4,7 +4,7 @@
 #include "logging/spotflow_log_backend.h"
 #include "cbor.h"
 
-static const char *TAG = "SPOTFLOW_COREDUMP";
+static const char* TAG = "SPOTFLOW_COREDUMP";
 
 #define MAX_KEY_COUNT 8
 
@@ -26,15 +26,15 @@ static const char *TAG = "SPOTFLOW_COREDUMP";
 
 uint8_t buffer[CONFIG_SPOTFLOW_COREDUMPS_CHUNK_SIZE + COREDUMPS_OVERHEAD];
 
-void print_cbor_hex(const uint8_t *buf, size_t len)
+void print_cbor_hex(const uint8_t* buf, size_t len)
 {
-    SPOTFLOW_LOG("CBOR buffer (%zu bytes):\n", len);
-    for (size_t i = 0; i < len; i++) {
-        printf("%02X ", buf[i]);  // print each byte as 2-digit hex
-        if ((i + 1) % 16 == 0)    // 16 bytes per line
-            printf("\n");
-    }
-    printf("\n");
+	SPOTFLOW_LOG("CBOR buffer (%zu bytes):\n", len);
+	for (size_t i = 0; i < len; i++) {
+		printf("%02X ", buf[i]); // print each byte as 2-digit hex
+		if ((i + 1) % 16 == 0) // 16 bytes per line
+			printf("\n");
+	}
+	printf("\n");
 }
 
 int spotflow_cbor_encode_coredump(const uint8_t* coredump_data, size_t coredump_data_len,
@@ -42,17 +42,18 @@ int spotflow_cbor_encode_coredump(const uint8_t* coredump_data, size_t coredump_
 				  const uint8_t* build_id_data, size_t build_id_data_len,
 				  uint8_t** cbor_data, size_t* cbor_data_len)
 {
-    CborEncoder array_encoder;
+	CborEncoder array_encoder;
 	CborEncoder map_encoder;
 
-	uint8_t *buf = malloc(CONFIG_SPOTFLOW_COREDUMPS_CHUNK_SIZE + COREDUMPS_OVERHEAD);
-    if (!buf) {
-        SPOTFLOW_LOG("Failed to allocate CBOR buffer");
-        return -1;
-    }
-    cbor_encoder_init(&array_encoder, buf, CONFIG_SPOTFLOW_COREDUMPS_CHUNK_SIZE + COREDUMPS_OVERHEAD, 0);
+	uint8_t* buf = malloc(CONFIG_SPOTFLOW_COREDUMPS_CHUNK_SIZE + COREDUMPS_OVERHEAD);
+	if (!buf) {
+		SPOTFLOW_LOG("Failed to allocate CBOR buffer");
+		return -1;
+	}
+	cbor_encoder_init(&array_encoder, buf,
+			  CONFIG_SPOTFLOW_COREDUMPS_CHUNK_SIZE + COREDUMPS_OVERHEAD, 0);
 	cbor_encoder_create_map(&array_encoder, &map_encoder, 8); // {
-	
+
 	/* start outer map */
 
 	cbor_encode_uint(&map_encoder, KEY_MESSAGE_TYPE);
@@ -79,7 +80,7 @@ int spotflow_cbor_encode_coredump(const uint8_t* coredump_data, size_t coredump_
 	cbor_encode_uint(&map_encoder, ESP_IDF_OS_VALUE);
 
 	/* finish cbor */
-    cbor_encoder_close_container(&array_encoder, &map_encoder); // }
+	cbor_encoder_close_container(&array_encoder, &map_encoder); // }
 
 	*cbor_data_len = cbor_encoder_get_buffer_size(&array_encoder, buf);
 
