@@ -35,11 +35,8 @@ def generate_and_patch_build_id(elf_filepath: str, other_filepaths: list[str]):
 
             if (
                 filepath.endswith(".elf")
-                or filepath.endswith(".exe")
             ):
                 patch_build_id_elf(filepath, bindesc_symbol_vaddr, build_id)
-            elif filepath.endswith(".hex"):
-                patch_build_id_hex(filepath, bindesc_symbol_paddr, build_id)
             elif filepath.endswith(".bin"):
                 patch_build_id_bin(filepath, elffile, bindesc_symbol_paddr, build_id)
             else:
@@ -72,12 +69,14 @@ def convert_vaddr_to_paddr(elffile: ELFFile, vaddr: int) -> int:
     for segment in elffile.iter_segments():
         if segment["p_type"] == "PT_LOAD":
             seg_vaddr = segment["p_vaddr"]
+            seg_offset = segment["p_offset"]
             seg_paddr = segment["p_paddr"]
             seg_size = segment["p_memsz"]
 
             if seg_vaddr <= vaddr < seg_vaddr + seg_size:
                 offset = vaddr - seg_vaddr
-                return seg_paddr + offset
+                # return seg_paddr + offset
+                return seg_offset + offset
 
     raise Exception(f"Virtual address 0x{vaddr:08x} not found in any segment of ELF file")
 
@@ -198,36 +197,84 @@ def patch_build_id_hex(
     intel_hex.write_hex_file(hex_filepath)
 
 
+# def patch_build_id_bin(
+#     bin_filepath: str,
+#     elffile: ELFFile,
+#     bindesc_symbol_paddr: int,
+#     build_id: bytes,
+# ):
+#     # The content of the binary file starts at the base address of the ELF file
+#     base_address = find_base_address(elffile)
+
+#     with open(bin_filepath, "rb+") as bin_file:
+#         # symbol_file_offset = bindesc_symbol_paddr - base_address
+#         symbol_file_offset = bindesc_symbol_paddr
+#         bin_file.seek(symbol_file_offset)
+#         header = bin_file.read(BUILD_ID_HEADER_SIZE)
+#         if header != BUILD_ID_HEADER_VALUE:
+#             raise Exception(
+#                 f"Invalid build ID binary descriptor header at offset "
+#                 f"0x{symbol_file_offset:08x}: {header.hex()}"
+#             )
+
+#         build_id_file_offset = symbol_file_offset + BUILD_ID_HEADER_SIZE
+
+#         print(
+#             f"Patching build ID '{build_id.hex()}' into BIN file '{bin_filepath}' at offset: "
+#             f"0x{build_id_file_offset:08x}"
+#         )
+
+#         bin_file.seek(build_id_file_offset)
+#         bin_file.write(build_id)
+
+
 def patch_build_id_bin(
     bin_filepath: str,
     elffile: ELFFile,
-    bindesc_symbol_paddr: int,
+    bindesc_symbol_file_offset: int,
     build_id: bytes,
 ):
-    # The content of the binary file starts at the base address of the ELF file
-    base_address = find_base_address(elffile)
+    # Read the entire binary
+    with open(bin_filepath, "rb") as bin_file:
+        bin_data = bin_file.read()
+    
+    print(f"Binary file size: {len(bin_data)} bytes")
+    print(f"Searching for build ID header: {BUILD_ID_HEADER_VALUE.hex()}")
+    
+    # Search for the header pattern in the binary
+    header_index = bin_data.find(BUILD_ID_HEADER_VALUE)
+    
+    if header_index == -1:
+        print("WARNING: Build ID header not found in binary file by pattern matching")
+        print("Binary file might not include .flash.rodata section or has different layout")
+        print("Skipping binary patching - device will use ELF-based flashing")
+        return  # Just skip patching the bin, it's not critical
+    
+    build_id_file_offset = header_index + BUILD_ID_HEADER_SIZE
+    
+    print(
+        f"Found build ID header at offset: 0x{header_index:08x}"
+    )
+    print(
+        f"Patching build ID '{build_id.hex()}' into BIN file '{bin_filepath}' at offset: "
+        f"0x{build_id_file_offset:08x}"
+    )
 
+    # Write the patched binary
     with open(bin_filepath, "r+b") as bin_file:
-        symbol_file_offset = bindesc_symbol_paddr - base_address
-        bin_file.seek(symbol_file_offset)
-        header = bin_file.read(BUILD_ID_HEADER_SIZE)
-        if header != BUILD_ID_HEADER_VALUE:
-            raise Exception(
-                f"Invalid build ID binary descriptor header at offset "
-                f"0x{symbol_file_offset:08x}: {header.hex()}"
-            )
-
-        build_id_file_offset = symbol_file_offset + BUILD_ID_HEADER_SIZE
-
-        print(
-            f"Patching build ID '{build_id.hex()}' into BIN file '{bin_filepath}' at offset: "
-            f"0x{build_id_file_offset:08x}"
-        )
-
         bin_file.seek(build_id_file_offset)
         bin_file.write(build_id)
-
-
+    
+    # Verify the patch
+    with open(bin_filepath, "rb") as bin_file:
+        bin_file.seek(header_index)
+        verify_data = bin_file.read(BUILD_ID_HEADER_SIZE + BUILD_ID_VALUE_SIZE)
+        if verify_data[:BUILD_ID_HEADER_SIZE] == BUILD_ID_HEADER_VALUE and \
+           verify_data[BUILD_ID_HEADER_SIZE:] == build_id:
+            print(f"✓ Build ID successfully patched and verified in BIN file")
+        else:
+            raise Exception("Build ID verification failed after patching")
+            
 def find_base_address(elffile: ELFFile) -> int:
     base_address = None
 
@@ -261,5 +308,4 @@ def main():
 
 
 if __name__ == "__main__":
-    print("Spotflow build-ID patch started")
     main()

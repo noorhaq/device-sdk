@@ -28,6 +28,7 @@ if(CONFIG_SPOTFLOW_GENERATE_BUILD_ID)
     
     # Paths
     set(SPOTFLOW_ELF "${build_dir}/${project_name}.elf")
+    set(SPOTFLOW_BIN "${build_dir}/${project_name}.bin")
     set(SPOTFLOW_BUILD_ID_DONE "${build_dir}/spotflow_build_id_done")
     
     # Get the script path relative to component directory
@@ -37,9 +38,7 @@ if(CONFIG_SPOTFLOW_GENERATE_BUILD_ID)
     # Custom command that will run after the ELF is created
     add_custom_command(
         OUTPUT ${SPOTFLOW_BUILD_ID_DONE}
-        COMMAND ${PYTHON} "${spotflow_patch_build_id_script}" "${SPOTFLOW_ELF}"
-        COMMAND ${CMAKE_COMMAND} -E echo "=== Spotflow Build ID ==="
-        COMMAND bash -c "xtensa-esp32-elf-readelf -n '${SPOTFLOW_ELF}' | grep -i 'bindesc_entry_spotflow_build_id' || echo 'No Build ID found!'"
+        COMMAND ${PYTHON} "${spotflow_patch_build_id_script}" "${SPOTFLOW_ELF}"  "${SPOTFLOW_BIN}"
         COMMAND ${CMAKE_COMMAND} -E touch "${SPOTFLOW_BUILD_ID_DONE}"
         DEPENDS ${SPOTFLOW_ELF}
         COMMENT "Patching and printing Spotflow Build ID..."

@@ -118,6 +118,7 @@ esp_err_t spotflow_coredump_backend(void)
         uint16_t build_id_len = 0;
         
 #ifdef CONFIG_SPOTFLOW_GENERATE_BUILD_ID
+    spotflow_build_id_print();
         if (coredump_info.chunk_ordinal == 0) {
             int rc = spotflow_build_id_get(&build_id, &build_id_len);
             if (rc != 0) {
