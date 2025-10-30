@@ -7,7 +7,7 @@
 #include "logging/spotflow_log_queue.h"
 #include "coredump/spotflow_coredump.h"
 #include "spotflow.h"
-
+#include "buildid/spotflow_build_id.h"
 vprintf_like_t original_vprintf = NULL;
 
 /**

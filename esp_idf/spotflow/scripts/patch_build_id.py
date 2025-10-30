@@ -36,7 +36,6 @@ def generate_and_patch_build_id(elf_filepath: str, other_filepaths: list[str]):
             if (
                 filepath.endswith(".elf")
                 or filepath.endswith(".exe")
-                or filepath.endswith(".strip")
             ):
                 patch_build_id_elf(filepath, bindesc_symbol_vaddr, build_id)
             elif filepath.endswith(".hex"):
@@ -262,4 +261,5 @@ def main():
 
 
 if __name__ == "__main__":
+    print("Spotflow build-ID patch started")
     main()
