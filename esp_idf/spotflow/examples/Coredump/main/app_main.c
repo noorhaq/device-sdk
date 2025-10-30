@@ -55,7 +55,7 @@ void app_main(void)
         }
         vTaskDelay(pdMS_TO_TICKS(500));
             int a = 15/0;
-    ESP_LOGI(TAG, "%d", a);
+            ESP_LOGI(TAG, "%d", a);
     }
 
 }

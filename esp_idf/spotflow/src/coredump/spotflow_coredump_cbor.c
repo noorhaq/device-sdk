@@ -18,7 +18,7 @@ static const char *TAG = "SPOTFLOW_COREDUMP";
 #define KEY_OS_VERSION 0x10
 
 #define CORE_DUMP_CHUNK_MESSAGE_TYPE 2
-#define ZEPHYR_OS_VALUE 1
+#define ESP_IDF_OS_VALUE 1
 
 /* Should be approximately 47 bytes (including build ID), putting 64 to be safe */
 #define COREDUMPS_OVERHEAD 64
@@ -63,7 +63,7 @@ int spotflow_cbor_encode_coredump(const uint8_t* coredump_data, size_t coredump_
 	}
 
 	cbor_encode_uint(&map_encoder, KEY_OS);
-	cbor_encode_uint(&map_encoder, ZEPHYR_OS_VALUE);
+	cbor_encode_uint(&map_encoder, ESP_IDF_OS_VALUE);
 
 	/* finish cbor */
     cbor_encoder_close_container(&array_encoder, &map_encoder); // }

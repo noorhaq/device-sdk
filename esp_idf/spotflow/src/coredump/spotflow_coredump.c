@@ -1,13 +1,24 @@
 #include "coredump/spotflow_coredump.h"
+#include "buildid/spotflow_build_id.h"
+// #include "coredump/spotflow_coredump_cbor.h"
 #include "esp_system.h"
 #include "esp_log.h"
 #include "esp_partition.h"
 #include "esp_core_dump.h"
+#include "esp_random.h"
 
 static const char *TAG = "SPOTFLOW_COREDUMP";
 
 #define COREDUMP_PARTITION_NAME "coredump"
 
+typedef struct {
+    size_t size;
+    size_t offset;
+    int chunk_ordinal;
+    uint32_t coredump_id;
+} coredump_info_t;
+
+static coredump_info_t coredump_info = {0};
 
 bool is_coredump_available(void)
 {
@@ -28,7 +39,7 @@ bool is_coredump_available(void)
 }
 
 
-esp_err_t display_coredump(void)
+esp_err_t spotflow_coredump_backend(void)
 {
     size_t coredump_addr = 0;
     size_t coredump_size = 0;
@@ -48,53 +59,114 @@ esp_err_t display_coredump(void)
 
     // Log the coredump information
     ESP_LOGI(TAG, "Coredump address: 0x%08X, size: 0x%08X bytes", (unsigned int)coredump_addr, (int)coredump_size);
-
-    // Read the coredump from flash
-    uint8_t *coredump_data = malloc(coredump_size);
-    if (!coredump_data) {
-        ESP_LOGE(TAG, "Failed to allocate memory for coredump.");
-        return ESP_ERR_NO_MEM;
-    }
-
-    // Read the coredump data from flash
-    const esp_partition_t *part = esp_partition_find_first(ESP_PARTITION_TYPE_DATA, ESP_PARTITION_SUBTYPE_DATA_COREDUMP, NULL);
+    
+    // Find the coredump partition
+    const esp_partition_t *part = esp_partition_find_first(ESP_PARTITION_TYPE_DATA, 
+                                                           ESP_PARTITION_SUBTYPE_DATA_COREDUMP, 
+                                                           NULL);
     if (!part) {
-        free(coredump_data);
         ESP_LOGE(TAG, "Coredump partition not found.");
         return ESP_ERR_NOT_FOUND;
     }
 
+    // Adjust address to partition offset
     coredump_addr = coredump_addr - part->address;
-    ESP_LOGI(TAG, "New address Coredump_Addr 0x%08X and partition Addr 0x%08X", coredump_addr, part->address);
-    err = esp_partition_read(part, coredump_addr, coredump_data, coredump_size);
-    if (err != ESP_OK) {
-        free(coredump_data);
-        ESP_LOGE(TAG, "Failed to read coredump data from flash.");
-        return err;
+    ESP_LOGI(TAG, "Adjusted coredump address: 0x%08X, partition address: 0x%08X", 
+             (unsigned int)coredump_addr, (unsigned int)part->address);
+    
+    // Initialize coredump info
+    coredump_info.size = coredump_size;
+    coredump_info.offset = 0;
+    coredump_info.chunk_ordinal = 0;
+    coredump_info.coredump_id = esp_random(); // Generate random coredump ID
+    
+    ESP_LOGI(TAG, "Starting coredump processing with ID: 0x%08X, size: %zu", 
+             coredump_info.coredump_id, coredump_info.size);
+
+    // Allocate buffer for one chunk only
+    size_t chunk_size = CONFIG_SPOTFLOW_COREDUMPS_CHUNK_SIZE;
+    uint8_t *chunk_buffer = malloc(chunk_size);
+    
+    if (!chunk_buffer) {
+        ESP_LOGE(TAG, "Failed to allocate memory for chunk buffer.");
+        return ESP_ERR_NO_MEM;
     }
 
-    // Display the coredump data (raw hex output)
-    ESP_LOGI(TAG, "Coredump Data (Hex Dump):");
-    ESP_LOGI(TAG, "%s", coredump_data);
-    for (size_t i = 0; i < coredump_size; i++) {
-    if (i % 16 == 0) {
-        // Print ASCII section for the previous 16 bytes
-        if (i > 0) {
-            printf(" | ");
-            for (size_t j = i - 16; j < i; j++) {
-                uint8_t c = coredump_data[j];
-                printf("%c", (c >= 32 && c <= 126) ? c : '.');
-            }
-            printf("\n");
+    // Process coredump in chunks
+    while (coredump_info.offset < coredump_info.size) {
+        // Calculate remaining size and current chunk size
+        size_t remaining_size = coredump_info.size - coredump_info.offset;
+        size_t current_chunk_size = (remaining_size < chunk_size) ? remaining_size : chunk_size;
+        
+        // Read the chunk from flash
+        err = esp_partition_read(part, coredump_addr + coredump_info.offset, 
+                                chunk_buffer, current_chunk_size);
+        if (err != ESP_OK) {
+            free(chunk_buffer);
+            ESP_LOGE(TAG, "Failed to read coredump chunk at offset %zu.", coredump_info.offset);
+            return err;
         }
-        // Print address offset at the start of each line
-        printf("0x%08X: ", (unsigned)(coredump_addr + i));
+        
+        // Check if this is the last chunk
+        bool is_last_chunk = (coredump_info.offset + current_chunk_size) >= coredump_info.size;
+        if (is_last_chunk) {
+            ESP_LOGI(TAG, "Processing last chunk of coredump");
+        }
+        
+        // Get build ID (only for first chunk)
+        const uint8_t *build_id = NULL;
+        uint16_t build_id_len = 0;
+        
+#ifdef CONFIG_SPOTFLOW_GENERATE_BUILD_ID
+        if (coredump_info.chunk_ordinal == 0) {
+            int rc = spotflow_build_id_get(&build_id, &build_id_len);
+            if (rc != 0) {
+                ESP_LOGW(TAG, "Failed to get build ID for coredump: %d", rc);
+            } else {
+                ESP_LOGI(TAG, "Build ID retrieved, length: %zu", build_id_len);
+            }
+        }
+#endif
+        
+        // Encode coredump chunk to CBOR
+        uint8_t *cbor_data = NULL;
+        size_t cbor_data_len = 0;
+        int rc = 1;
+        // int rc = spotflow_cbor_encode_coredump(
+        //     chunk_buffer, 
+        //     current_chunk_size,
+        //     coredump_info.chunk_ordinal,
+        //     coredump_info.coredump_id,
+        //     is_last_chunk,
+        //     build_id,
+        //     build_id_len,
+        //     &cbor_data,
+        //     &cbor_data_len
+        // );
+        
+        if (rc < 0) {
+            free(chunk_buffer);
+            ESP_LOGE(TAG, "Failed to encode coredump chunk: %d", rc);
+            return ESP_FAIL;
+        }
+        
+        // Free the CBOR data after sending
+        free(cbor_data);
+        
+        // Update progress
+        coredump_info.chunk_ordinal++;
+        coredump_info.offset += current_chunk_size;
+        
+        ESP_LOGI(TAG, "Sent chunk %d: %zu/%zu bytes (%.1f%%)", 
+                 coredump_info.chunk_ordinal - 1,
+                 coredump_info.offset, 
+                 coredump_info.size, 
+                 (float)coredump_info.offset * 100.0f / coredump_info.size);
     }
 
-    // Print hex byte
-    printf("%02X ", coredump_data[i]);
-}
-
-    free(coredump_data);
+    free(chunk_buffer);
+    ESP_LOGI(TAG, "Successfully processed and sent all %zu bytes of coredump data in %d chunks", 
+             coredump_info.size, coredump_info.chunk_ordinal);
+    
     return ESP_OK;
 }

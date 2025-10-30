@@ -6,8 +6,9 @@
 #include "logging/spotflow_log_backend.h"
 #include "logging/spotflow_log_queue.h"
 #include "coredump/spotflow_coredump.h"
-#include "spotflow.h"
 #include "buildid/spotflow_build_id.h"
+#include "spotflow.h"
+
 vprintf_like_t original_vprintf = NULL;
 
 /**
@@ -31,7 +32,7 @@ void spotflow_init(void)
     Spotflow_Todo(); //Checking for unused set Configs.
     if(is_coredump_available())
     {
-        display_coredump();
+        spotflow_coredump_backend();
     }
     // mqtt_app_start(); // Calling the mqtt_start from the init function.
     // queue_init(); //Initilize the queue

@@ -5,6 +5,6 @@
 #include "esp_err.h"
 
 bool is_coredump_available(void);
-esp_err_t display_coredump(void);
+esp_err_t spotflow_coredump_backend(void);
 
 #endif
