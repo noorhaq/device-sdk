@@ -5,6 +5,7 @@ set(SRCS
     "src/logging/spotflow_log_queue.c"
     "src/logging/spotflow_log_cbor.c"
     "src/coredump/spotflow_coredump.c"
+    "src/coredump/spotflow_coredump_cbor.c"
     "src/buildid/spotflow_build_id.c"
     "spotflow.c"
 )

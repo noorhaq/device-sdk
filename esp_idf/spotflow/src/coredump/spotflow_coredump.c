@@ -1,6 +1,6 @@
 #include "coredump/spotflow_coredump.h"
 #include "buildid/spotflow_build_id.h"
-// #include "coredump/spotflow_coredump_cbor.h"
+#include "coredump/spotflow_coredump_cbor.h"
 #include "esp_system.h"
 #include "esp_log.h"
 #include "esp_partition.h"
@@ -131,18 +131,17 @@ esp_err_t spotflow_coredump_backend(void)
         // Encode coredump chunk to CBOR
         uint8_t *cbor_data = NULL;
         size_t cbor_data_len = 0;
-        int rc = 1;
-        // int rc = spotflow_cbor_encode_coredump(
-        //     chunk_buffer, 
-        //     current_chunk_size,
-        //     coredump_info.chunk_ordinal,
-        //     coredump_info.coredump_id,
-        //     is_last_chunk,
-        //     build_id,
-        //     build_id_len,
-        //     &cbor_data,
-        //     &cbor_data_len
-        // );
+        int rc = spotflow_cbor_encode_coredump(
+            chunk_buffer, 
+            current_chunk_size,
+            coredump_info.chunk_ordinal,
+            coredump_info.coredump_id,
+            is_last_chunk,
+            build_id,
+            build_id_len,
+            &cbor_data,
+            &cbor_data_len
+        );
         
         if (rc < 0) {
             free(chunk_buffer);

@@ -1,6 +1,7 @@
 #include "spotflow.h"
 #include "net/spotflow_mqtt.h"
 #include "coredump/spotflow_coredump_cbor.h"
+#include "logging/spotflow_log_backend.h"
 #include "cbor.h"
 
 static const char *TAG = "SPOTFLOW_COREDUMP";
@@ -25,20 +26,32 @@ static const char *TAG = "SPOTFLOW_COREDUMP";
 
 uint8_t buffer[CONFIG_SPOTFLOW_COREDUMPS_CHUNK_SIZE + COREDUMPS_OVERHEAD];
 
+void print_cbor_hex(const uint8_t *buf, size_t len)
+{
+    SPOTFLOW_LOG("CBOR buffer (%zu bytes):\n", len);
+    for (size_t i = 0; i < len; i++) {
+        printf("%02X ", buf[i]);  // print each byte as 2-digit hex
+        if ((i + 1) % 16 == 0)    // 16 bytes per line
+            printf("\n");
+    }
+    printf("\n");
+}
+
 int spotflow_cbor_encode_coredump(const uint8_t* coredump_data, size_t coredump_data_len,
 				  int chunk_ordinal, uint32_t core_dump_id, bool last_chunk,
 				  const uint8_t* build_id_data, size_t build_id_data_len,
 				  uint8_t** cbor_data, size_t* cbor_data_len)
 {
     CborEncoder array_encoder;
+	CborEncoder map_encoder;
 
 	uint8_t *buf = malloc(CONFIG_SPOTFLOW_COREDUMPS_CHUNK_SIZE + COREDUMPS_OVERHEAD);
     if (!buf) {
         SPOTFLOW_LOG("Failed to allocate CBOR buffer");
-        return NULL;
+        return -1;
     }
     cbor_encoder_init(&array_encoder, buf, CONFIG_SPOTFLOW_COREDUMPS_CHUNK_SIZE + COREDUMPS_OVERHEAD, 0);
-	cbor_encoder_create_map(&array_encoder, &map_encoder, 7); // {
+	cbor_encoder_create_map(&array_encoder, &map_encoder, 8); // {
 	
 	/* start outer map */
 
@@ -52,14 +65,14 @@ int spotflow_cbor_encode_coredump(const uint8_t* coredump_data, size_t coredump_
 	cbor_encode_uint(&map_encoder, chunk_ordinal);
 
 	cbor_encode_uint(&map_encoder, KEY_CONTENT);
-	cbor_encode_text_string(&map_encoder, coredump_data, coredump_data_len);
+	cbor_encode_byte_string(&map_encoder, coredump_data, coredump_data_len);
 
 	cbor_encode_uint(&map_encoder, KEY_IS_LAST_CHUNK);
 	cbor_encode_boolean(&map_encoder, last_chunk);
 
 	if (build_id_data != NULL) {
 		cbor_encode_uint(&map_encoder, KEY_BUILD_ID);
-		cbor_encode_text_string(&map_encoder, build_id_data, build_id_data_len);
+		cbor_encode_byte_string(&map_encoder, build_id_data, build_id_data_len);
 	}
 
 	cbor_encode_uint(&map_encoder, KEY_OS);
@@ -68,8 +81,8 @@ int spotflow_cbor_encode_coredump(const uint8_t* coredump_data, size_t coredump_
 	/* finish cbor */
     cbor_encoder_close_container(&array_encoder, &map_encoder); // }
 
-	*out_len = cbor_encoder_get_buffer_size(&array_encoder, buf);
+	*cbor_data_len = cbor_encoder_get_buffer_size(&array_encoder, buf);
 
-	*cbor_data = data;
+	print_cbor_hex(buf, *cbor_data_len);
 	return 0;
 }
