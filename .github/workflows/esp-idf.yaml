@@ -11,7 +11,7 @@ on:
       - main
     paths:
       - 'esp_idf/spotflow/examples/logs/**'
-
+  workflow_dispatch: 
 jobs:
   build:
     name: Build and Test ESP-IDF Project
