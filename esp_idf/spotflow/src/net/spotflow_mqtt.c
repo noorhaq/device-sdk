@@ -58,6 +58,15 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
         SPOTFLOW_LOG("MQTT_EVENT_DATA");
         SPOTFLOW_LOG("TOPIC=%.*s\r\n", event->topic_len, event->topic);
         SPOTFLOW_LOG("DATA=%.*s\r\n", event->data_len, event->data);
+        #if CONFIG_MQTT_PROTOCOL_5
+        if (event->property) {
+            const esp_mqtt5_publish_property_config_t *prop = event->property;
+            if (prop->user_property) {
+                SPOTFLOW_LOG("User property: %s = %s",
+                             prop->user_property->key, prop->user_property->value);
+            }
+        }
+    #endif
         // if (strncmp(event->data, "send binary please", event->data_len) == 0) {
         //     ESP_LOGI(TAG, "Sending the binary");
         //     send_binary(client);
@@ -105,7 +114,12 @@ void mqtt_app_start(void)
             .verification.certificate = (const char *)mqtt_spotflow_io_pem_start
         },
         .credentials.username = device_id,
-        .credentials.authentication.password = (const char *)CONFIG_SPOTFLOW_INGEST_KEY
+        .credentials.authentication.password = (const char *)CONFIG_SPOTFLOW_INGEST_KEY,
+    #if CONFIG_MQTT_PROTOCOL_5
+        .session.protocol_ver = MQTT_PROTOCOL_V_5,  // Use MQTT v5 if enabled
+    #else
+        .session.protocol_ver = MQTT_PROTOCOL_V_3_1_1, // Default otherwise
+    #endif
     };
 
     client = esp_mqtt_client_init(&mqtt_cfg);
