@@ -2,10 +2,10 @@ name: Build ESP-IDF Project
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
-  workflow_dispatch:
+  
+concurrency:
+  group: ${{ github.ref }}-${{ github.workflow }}
+  cancel-in-progress: true 
 
 jobs:
   discover-examples:
