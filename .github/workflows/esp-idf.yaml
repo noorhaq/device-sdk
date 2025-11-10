@@ -19,14 +19,16 @@ jobs:
       - name: Find examples dynamically
         id: set-matrix
         run: |
-          echo "🔍 Searching for example folders..."
-          # Find all example folders containing a CMakeLists.txt file
-          examples=$(find esp_idf/spotflow/examples -type f -name "CMakeLists.txt" \
-            | sed 's|/CMakeLists.txt||' | jq -R . | jq -s .)
+          echo "🔍 Searching for top-level example folders..."
 
+          examples=$(find esp_idf/spotflow/examples -mindepth 1 -maxdepth 1 -type d \
+            -exec test -f "{}/CMakeLists.txt" \; -print \
+            | jq -R -c . | jq -s -c .)
+          
           echo "Examples found:"
           echo "$examples"
-
+          
+          # Export in GitHub Actions safe format
           echo "examples=$examples" >> "$GITHUB_OUTPUT"
 
   build:
