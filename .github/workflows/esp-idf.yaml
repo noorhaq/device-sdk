@@ -62,9 +62,16 @@ jobs:
           target: ${{ matrix.target }}
           path: ${{ matrix.example }}
 
+      - name: Set safe artifact name
+        id: artifact_name
+        run: |
+          EXAMPLE_NAME=$(basename "${{ matrix.example }}")
+          SAFE_NAME="firmware-${{ matrix.target }}-${EXAMPLE_NAME}"
+          echo "name=$SAFE_NAME" >> "$GITHUB_OUTPUT"
+      
       - name: Upload build artifacts
-        if: always()               # 👈 upload whatever succeeded, even after failure
+        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: firmware-${{ matrix.target }}-${{ basename(matrix.example) }}
+          name: ${{ steps.artifact_name.outputs.name }}
           path: ${{ matrix.example }}/build/
