@@ -11,7 +11,7 @@ permissions:
 
 concurrency:
   group: ${{ github.ref }}-${{ github.workflow }}
-  cancel-in-progress: true 
+  cancel-in-progress: true
 
 jobs:
   discover-examples:
@@ -36,7 +36,6 @@ jobs:
 
           echo "Examples found: $examples"
           echo "examples=$examples" >> "$GITHUB_OUTPUT"
-
   build:
     runs-on: ubuntu-latest
     needs: discover-examples
