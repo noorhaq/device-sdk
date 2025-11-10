@@ -66,5 +66,5 @@ jobs:
         if: always()               # 👈 upload whatever succeeded, even after failure
         uses: actions/upload-artifact@v4
         with:
-          name: firmware-${{ matrix.target }}-${{ matrix.example }}
+          name: firmware-${{ matrix.target }}-${{ basename(matrix.example) }}
           path: ${{ matrix.example }}/build/
