@@ -5,10 +5,17 @@ on:
     branches:
       - main
   pull_request:
-  workflow_dispatch: 
+  workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        target: [esp32s3, esp32c6]
+        example:
+          - esp_idf/spotflow/examples/logs
+          - esp_idf/spotflow/examples/Coredump
 
     steps:
       - name: Checkout repository
@@ -20,12 +27,11 @@ jobs:
         uses: espressif/esp-idf-ci-action@v1
         with:
           esp_idf_version: v5.5.1
-          target: [esp32s3, esp32c6]
-          path: 'esp_idf/spotflow/examples/logs;esp_idf/spotflow/examples/Coredump'
+          target: ${{ matrix.target }}
+          path: ${{ matrix.example }}
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: firmware-${{ github.run_number }}
-          path: |
-            esp_idf/spotflow/examples/logs/build/
+          name: firmware-${{ matrix.target }}-${{ matrix.example##*/ }}-${{ github.run_number }}
+          path: ${{ matrix.example }}/build/
