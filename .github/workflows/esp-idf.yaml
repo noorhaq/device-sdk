@@ -6,12 +6,8 @@ on:
 
 permissions:
   contents: read        # Allows reading repository content (needed for checkout)
-  actions: read         # Allows reading workflow actions
-  checks: write         # Allows reporting build results to PR checks
+  issues: write         # Allows reporting build results to PR checks
   pull-requests: write  # Allows commenting/updating PR status
-  id-token: write       # Required by some actions for authentication (optional but safe)
-  packages: read        # In case your build pulls dependencies from GitHub Packages
-  artifacts: write      # Needed to upload build artifacts
 
 
 concurrency:
