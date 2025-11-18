@@ -126,7 +126,7 @@ void spotflow_mqtt_publish(void* pvParameters)
         if (atomic_load(&spotflow_mqtt_connected)) {
 
             // Only proceed if the outbox_size i.e. current message is smaller than overall mqtt_buffer.
-            if ((esp_mqtt_client_get_outbox_size(spotflow_client) < CONFIG_SPOTFLOW_CBOR_LOG_MAX_LEN) || (esp_mqtt_client_get_outbox_size(spotflow_client) < CONFIG_SPOTFLOW_COREDUMPS_CHUNK_SIZE)) {
+            if ((esp_mqtt_client_get_outbox_size(spotflow_client) < CONFIG_SPOTFLOW_CBOR_LOG_MAX_LEN)) {
 #ifdef CONFIG_ESP_COREDUMP_ENABLE
                 // Try to send coredump messages first
                 if (spotflow_queue_coredump_read(&msg)) {
