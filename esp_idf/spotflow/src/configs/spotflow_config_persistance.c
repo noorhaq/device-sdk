@@ -58,7 +58,7 @@ void spotflow_config_persistence_try_save(struct spotflow_config_persisted_setti
     esp_err_t err = nvs_set_i32(nvs_handle, "sent_log_level", (int32_t)settings->sent_log_level);
     
     if (err != ESP_OK) {
-        printf("Failed to persist sent_log_level: %d\n", err);
+        SPOTFLOW_LOG("Failed to persist sent_log_level: %d\n", err);
     } else {
         err = nvs_commit(nvs_handle);
         if (err != ESP_OK) {
