@@ -1,6 +1,8 @@
 #ifndef SPOTFLOW_LOG_BACKEND_H
 #define SPOTFLOW_LOG_BACKEND_H
 
+#include <stdarg.h>
+#include <stddef.h>
 #ifdef __cplusplus
 extern "C" {
 #endif

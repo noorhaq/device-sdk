@@ -45,7 +45,7 @@ static void spotflow_mqtt_event_handler(void* handler_args, esp_event_base_t bas
 	case MQTT_EVENT_CONNECTED:
 		SPOTFLOW_LOG("MQTT_EVENT_CONNECTED");
 		atomic_store(&spotflow_mqtt_connected, true);
-
+        spotflow_mqtt_subscribe(event->client, SPOTFLOW_MQTT_CONFIG_CBOR_C2D_TOPIC, SPOTFLOW_MQTT_CONFIG_CBOR_C2D_TOPIC_QOS);
 		break;
 	case MQTT_EVENT_DISCONNECTED:
 		SPOTFLOW_LOG("MQTT_EVENT_DISCONNECTED");
@@ -53,7 +53,6 @@ static void spotflow_mqtt_event_handler(void* handler_args, esp_event_base_t bas
 		break;
 
 	case MQTT_EVENT_SUBSCRIBED:
-		spotflow_mqtt_subscribe(event->client, SPOTFLOW_MQTT_CONFIG_CBOR_C2D_TOPIC, SPOTFLOW_MQTT_CONFIG_CBOR_C2D_TOPIC_QOS);
 		break;
 	case MQTT_EVENT_UNSUBSCRIBED:
 		break;
@@ -61,10 +60,7 @@ static void spotflow_mqtt_event_handler(void* handler_args, esp_event_base_t bas
 		SPOTFLOW_LOG("Message published. \n\n");
 		break;
 	case MQTT_EVENT_DATA:
-		spotflow_mqtt_handle_data(event)
-		SPOTFLOW_LOG("MQTT_EVENT_DATA");
-		SPOTFLOW_LOG("TOPIC=%.*s\r\n", event->topic_len, event->topic);
-		SPOTFLOW_LOG("DATA=%.*s\r\n", event->data_len, event->data);
+		spotflow_mqtt_handle_data(event);
 		break;
 	case MQTT_EVENT_ERROR:
 		SPOTFLOW_LOG("MQTT_EVENT_ERROR");
@@ -233,7 +229,7 @@ static int msg_len = 0;
 static int msg_expected = 0;
 static char topic_buf[256];
 static int topic_len = 0;
-void spotflow_mqtt_process_event(esp_mqtt_event_handle_t event)
+void spotflow_mqtt_handle_data(esp_mqtt_event_handle_t event)
 {
     // First chunk
     if (event->current_data_offset == 0) {
@@ -294,11 +290,10 @@ void spotflow_mqtt_on_message(const char *topic, int topic_len,
     SPOTFLOW_LOG("MQTT Message Received on topic: %.*s", topic_len, topic);
 
     // Compare topic exactly
-    if (strncmp(topic, SPOTFLOW_MQTT_CONFIG_CBOR_C2D_TOPIC, topic_len) == 0 &&
-        topic_len == strlen(SPOTFLOW_MQTT_CONFIG_CBOR_C2D_TOPIC))
+    if (strstr(topic, SPOTFLOW_MQTT_CONFIG_CBOR_C2D_TOPIC) != NULL)
     {
         // Your config handling
-        SPOTFLOW_LOG("Dispatching to config handler...");
+        SPOTFLOW_LOG("Dispatching to config handler...\n");
         spotflow_config_desired_message(data, data_len);
         return;
     }

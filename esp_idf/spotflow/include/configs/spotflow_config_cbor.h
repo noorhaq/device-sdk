@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stddef.h>
 
 #define SPOTFLOW_CONFIG_RESPONSE_MAX_LENGTH 32
 

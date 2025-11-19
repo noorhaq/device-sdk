@@ -8,30 +8,32 @@
 
 void spotflow_config_init()
 {
-	struct spotflow_config_persisted_settings persisted_settings;
+	// struct spotflow_config_persisted_settings persisted_settings;
 
-	spotflow_config_persistence_try_init();
-	spotflow_config_persistence_try_load(&persisted_settings);
+	// spotflow_config_persistence_try_init();
+	// spotflow_config_persistence_try_load(&persisted_settings);
 
-	if ((persisted_settings.flags & SPOTFLOW_REPORTED_FLAG_MINIMAL_LOG_SEVERITY) != 0) {
-		spotflow_config_init_sent_log_level(persisted_settings.sent_log_level);
-	} else {
-		spotflow_config_init_sent_log_level_default();
-	}
+	// if ((persisted_settings.flags & SPOTFLOW_REPORTED_FLAG_MINIMAL_LOG_SEVERITY) != 0) {
+	// 	spotflow_config_init_sent_log_level(persisted_settings.sent_log_level);
+	// } else {
+	// 	spotflow_config_init_sent_log_level_default();
+	// }
 }
 
-void spotflow_config_desired_message(const uint8_t* payload,int len)
+void spotflow_config_desired_message(const uint8_t* payload, int len)
 {
 	struct spotflow_config_desired_msg desired_msg;
+	SPOTFLOW_LOG("Deconding Payload\n");
 	int rc = spotflow_config_cbor_decode_desired(payload, len, &desired_msg);
 	if (rc < 0) {
-		SPOTFLOW_LOG("Failed to decode received desired configuration message: %d", rc);
+		SPOTFLOW_LOG("Failed to decode received desired configuration message: %d\n", rc);
 		return;
 	}
 	else {
-		SPOTFLOW_LOG("decode successful");
+		SPOTFLOW_LOG("decode successful\n");
 	}
 
+	SPOTFLOW_LOG("Minimal log severity %d, desired config version %d \n\n", desired_msg.minimal_log_severity, desired_msg.minimal_log_severity);
 	// struct spotflow_config_reported_msg reported_msg = {
 	// 	.contains_acked_desired_config_version = true,
 	// 	.acked_desired_config_version = desired_msg.desired_config_version,

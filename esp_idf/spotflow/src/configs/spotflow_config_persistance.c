@@ -50,7 +50,7 @@ void spotflow_config_persistence_try_load(struct spotflow_config_persisted_setti
  * @param settings 
  */
 void spotflow_config_persistence_try_save(struct spotflow_config_persisted_settings* settings)
-// {
+{
 //     if (!settings->contains_sent_log_level) {
 //         return; // Nothing to save
 //     }

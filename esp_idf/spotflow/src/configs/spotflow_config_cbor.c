@@ -2,6 +2,9 @@
 #include <stdint.h>
 #include "esp_err.h"
 #include "cbor.h"
+#include "configs/spotflow_config_cbor.h"
+#include "configs/spotflow_config_persistance.h"
+#include "logging/spotflow_log_backend.h"
 
 #define MAX_KEY_COUNT 4
 
@@ -133,15 +136,15 @@ int spotflow_config_cbor_encode_reported(struct spotflow_config_reported_msg* ms
 {
     if (buffer == NULL || len == 0)
     {
-		LOG_ERR("Invalid buffer or length");
-		return -EINVAL;
+		SPOTFLOW_LOG("Invalid buffer or length");
+		return -1;
 	}
 
     CborEncoder encoder, map;
     cbor_encoder_init(&encoder, buffer, len, 0);
 
     // Start map with dynamic size
-    if (cbor_encoder_create_map(&encoder, &map, CborIndefiniteLength) != {
+    if (cbor_encoder_create_map(&encoder, &map, CborIndefiniteLength) != 0) {
         return -1;
     }
 
