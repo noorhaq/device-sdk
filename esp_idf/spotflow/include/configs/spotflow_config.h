@@ -9,6 +9,7 @@ extern "C" {
 
 void spotflow_config_init();
 int spotflow_config_init_session();
+void spotflow_config_desired_message(data, data_len);
 
 #ifdef __cplusplus
 }

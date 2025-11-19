@@ -13,6 +13,8 @@ extern atomic_bool spotflow_mqtt_connected;
 
 void spotflow_mqtt_app_start(void);
 void spotflow_mqtt_publish(void* pvParameters);
+int spotflow_mqtt_subscribe(esp_mqtt_client_handle_t client, const char *topic, int qos);
+void spotflow_mqtt_handle_data(esp_mqtt_event_handle_t event);
 
 #ifdef __cplusplus
 }

@@ -7,6 +7,9 @@
 #include "logging/spotflow_log_queue.h"
 #include "net/spotflow_mqtt.h"
 
+#include "configs/spotflow_config_net.h"
+#include "configs/spotflow_config.h"
+
 #ifdef CONFIG_ESP_COREDUMP_ENABLE
 	#include "coredump/spotflow_coredump_queue.h"
 #endif
@@ -50,6 +53,7 @@ static void spotflow_mqtt_event_handler(void* handler_args, esp_event_base_t bas
 		break;
 
 	case MQTT_EVENT_SUBSCRIBED:
+		spotflow_mqtt_subscribe(event->client, SPOTFLOW_MQTT_CONFIG_CBOR_C2D_TOPIC, SPOTFLOW_MQTT_CONFIG_CBOR_C2D_TOPIC_QOS);
 		break;
 	case MQTT_EVENT_UNSUBSCRIBED:
 		break;
@@ -57,6 +61,7 @@ static void spotflow_mqtt_event_handler(void* handler_args, esp_event_base_t bas
 		SPOTFLOW_LOG("Message published. \n\n");
 		break;
 	case MQTT_EVENT_DATA:
+		spotflow_mqtt_handle_data(event)
 		SPOTFLOW_LOG("MQTT_EVENT_DATA");
 		SPOTFLOW_LOG("TOPIC=%.*s\r\n", event->topic_len, event->topic);
 		SPOTFLOW_LOG("DATA=%.*s\r\n", event->data_len, event->data);
@@ -186,4 +191,118 @@ void spotflow_mqtt_publish(void* pvParameters)
             vTaskDelay(pdMS_TO_TICKS(100));
         }
     }
+}
+
+/**
+ * @brief 
+ * 
+ * @param client 
+ * @param topic 
+ * @param qos 
+ * @return int 
+ */
+int spotflow_mqtt_subscribe(esp_mqtt_client_handle_t client, const char *topic, int qos)
+{
+	if (qos < 0 || qos > 2)
+	{
+		SPOTFLOW_LOG("Invalid QOS %d\n", qos);
+		return ESP_FAIL;
+	} 
+    if (client == NULL || topic == NULL) 
+	{
+        return ESP_FAIL;
+    }
+    
+	int msg_id = esp_mqtt_client_subscribe(client, topic, qos);
+	
+	if (msg_id < 0) {
+        SPOTFLOW_LOG("MQTT subscribe FAILED for topic %s (qos=%d)\n", topic, qos);
+    } else {
+        SPOTFLOW_LOG("MQTT subscribe OK: msg_id=%d topic=%s qos=%d \n",
+                     msg_id, topic, qos);
+    }
+	return msg_id;
+}
+
+/**
+ * @brief 
+ * 
+ */
+static uint8_t *msg_buffer = NULL;
+static int msg_len = 0;
+static int msg_expected = 0;
+static char topic_buf[256];
+static int topic_len = 0;
+void spotflow_mqtt_process_event(esp_mqtt_event_handle_t event)
+{
+    // First chunk
+    if (event->current_data_offset == 0) {
+
+        // Topic copy
+        topic_len = event->topic_len;
+        memcpy(topic_buf, event->topic, event->topic_len);
+        topic_buf[topic_len] = '\0';
+
+        // Full message expected length
+        msg_expected = event->total_data_len;
+        msg_len = 0;
+
+        if (msg_buffer) {
+            free(msg_buffer);
+        }
+
+        // Allocate ONLY the needed size
+        msg_buffer = malloc(msg_expected);
+        if (!msg_buffer) {
+            SPOTFLOW_LOG("Failed to allocate MQTT buffer");
+            return;
+        }
+    }
+
+    // Append this chunk
+    memcpy(msg_buffer + msg_len, event->data, event->data_len);
+    msg_len += event->data_len;
+
+    // Complete message received?
+    if (msg_len == msg_expected) {
+
+        // Call your full-message handler
+        spotflow_mqtt_on_message(
+            topic_buf,
+            topic_len,
+            msg_buffer,
+            msg_expected
+        );
+
+        // Cleanup buffer
+        free(msg_buffer);
+        msg_buffer = NULL;
+    }
+}
+
+/**
+ * @brief 
+ * 
+ * @param topic 
+ * @param topic_len 
+ * @param data 
+ * @param data_len 
+ */
+void spotflow_mqtt_on_message(const char *topic, int topic_len,
+                              const uint8_t *data, int data_len)
+{
+    SPOTFLOW_LOG("MQTT Message Received on topic: %.*s", topic_len, topic);
+
+    // Compare topic exactly
+    if (strncmp(topic, SPOTFLOW_MQTT_CONFIG_CBOR_C2D_TOPIC, topic_len) == 0 &&
+        topic_len == strlen(SPOTFLOW_MQTT_CONFIG_CBOR_C2D_TOPIC))
+    {
+        // Your config handling
+        SPOTFLOW_LOG("Dispatching to config handler...");
+        spotflow_config_desired_message(data, data_len);
+        return;
+    }
+
+    // Unknown topic
+    SPOTFLOW_LOG("WARNING: Unhandled topic: %.*s", topic_len, topic);
 }

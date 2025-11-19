@@ -7,7 +7,7 @@ set(SRCS
     "src/logging/spotflow_log_cbor.c"
     "src/configs/spotflow_config_cbor.c"
     "src/configs/spotflow_config_net.c"
-    ""src/configs/spotflow_config_options.c"
+ #   "src/configs/spotflow_config_options.c"
     "src/configs/spotflow_config_persistance.c"
     "src/configs/spotflow_config.c"
     "spotflow.c"
