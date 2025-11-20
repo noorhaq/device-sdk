@@ -1,29 +1,24 @@
 #include <stdio.h>
 #include <inttypes.h>
-// #include "nvs_flash.h"
-// #include "nvs.h"
-#include "esp_err.h"
+#include "nvs_flash.h"
+#include "nvs.h"
+#include "configs/spotflow_config_persistance.h"
+#include "logging/spotflow_log_backend.h"
 
+#define SPOTFLOW_STORAGE "spotflow_sent_log_level"
+#define STORAGE_NAMESPACE "spotflow"
 /**
  * @brief 
  * 
  */
 void spotflow_config_persistence_try_init(void)
 {
-    // Initialize NVS
-    // esp_err_t err = nvs_flash_init();
-    // if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-    //     // NVS partition was truncated and needs to be erased
-    //     // Retry nvs_flash_init
-    //     ESP_ERROR_CHECK(nvs_flash_erase());
-    //     err = nvs_flash_init();
-    // }
-    // ESP_ERROR_CHECK(err);
-    // err = nvs_open("spotflow", NVS_READWRITE, &my_handle);
-    // if (err != ESP_OK) {
-    //     SPOTFLOW_LOG("Error (%s) opening NVS handle!", esp_err_to_name(err));
-    //     return;
-    // }
+    esp_err_t err = nvs_flash_init();
+    if (err == ESP_ERR_NVS_NO_FREE_PAGES || err == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        err = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(err);
 }
 
 /**
@@ -33,15 +28,25 @@ void spotflow_config_persistence_try_init(void)
  */
 void spotflow_config_persistence_try_load(struct spotflow_config_persisted_settings* settings)
 {
-    // *settings = (struct spotflow_config_persisted_settings){ 0 };
-    // int32_t stored_level = 0;
-    // esp_err_t err = nvs_get_i32(nvs_handle, "sent_log_level", &stored_level);
-    // if (err == ESP_OK) {
-    //     settings->sent_log_level = (uint8_t)stored_level;
-    // } else {
-    //     // Value not found, keep default 0
-    //     SPOTFLOW_LOG("No persisted sent_log_level found, using default 0\n");
-    // }
+    *settings = (struct spotflow_config_persisted_settings){ 0 };
+    nvs_handle_t spotflow_handle;
+    esp_err_t err;
+
+    // Open
+    err = nvs_open(STORAGE_NAMESPACE, NVS_READWRITE, &spotflow_handle);
+    if (err != ESP_OK) {
+        return;
+    }
+
+    err = nvs_get_u8(spotflow_handle, SPOTFLOW_STORAGE, &settings->sent_log_level);
+    if (err != ESP_OK) {
+        SPOTFLOW_LOG("Failed to read log_level!");
+    }
+    else {
+        settings->flags |= SPOTFLOW_REPORTED_FLAG_MINIMAL_LOG_SEVERITY;
+    }
+    
+    nvs_close(spotflow_handle);
 }
 
 /**
@@ -51,20 +56,30 @@ void spotflow_config_persistence_try_load(struct spotflow_config_persisted_setti
  */
 void spotflow_config_persistence_try_save(struct spotflow_config_persisted_settings* settings)
 {
-//     if (!settings->contains_sent_log_level) {
-//         return; // Nothing to save
-//     }
+    if (!settings->flags)
+    {
+        return;
+    }
+
+    nvs_handle_t spotflow_handle;
+    esp_err_t err;
+
+    // Open
+    err = nvs_open(STORAGE_NAMESPACE, NVS_READWRITE, &spotflow_handle);
+    if (err != ESP_OK) {
+         SPOTFLOW_LOG("Failed to open NVS for read/write!\n");
+        return;
+    }
+
+    err = nvs_set_u8(spotflow_handle, SPOTFLOW_STORAGE, settings->sent_log_level);
+    if (err != ESP_OK) {
+        SPOTFLOW_LOG("Failed to write log_level!\n");
+    }
     
-//     esp_err_t err = nvs_set_i32(nvs_handle, "sent_log_level", (int32_t)settings->sent_log_level);
-    
-//     if (err != ESP_OK) {
-//         SPOTFLOW_LOG("Failed to persist sent_log_level: %d\n", err);
-//     } else {
-//         err = nvs_commit(nvs_handle);
-//         if (err != ESP_OK) {
-//             SPOTFLOW_LOG("Failed to commit sent_log_level: %d\n", err);
-//         } else {
-//             SPOTFLOW_LOG("Sent log level persisted: %d\n", settings->sent_log_level);
-//         }
-//     }
+    err = nvs_commit(spotflow_handle);
+    if (err != ESP_OK) {
+        SPOTFLOW_LOG("Error (%s) committing data!\n", esp_err_to_name(err));
+    }
+
+    nvs_close(spotflow_handle);
 }
