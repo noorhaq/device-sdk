@@ -20,7 +20,7 @@ int spotflow_config_send_pending_message(void) {
     if (!is_message_pending) {
 		return 0;
 	}
-    int rc = spotflow_mqtt_publish_messgae(SPOTFLOW_MQTT_CONFIG_CBOR_D2C_TOPIC, (const char*)pending_message_buffer, pending_message_length, SPOTFLOW_MQTT_CONFIG_CBOR_D2C_TOPIC_QOS);
+    int rc = spotflow_mqtt_publish_messgae(SPOTFLOW_MQTT_CONFIG_CBOR_D2C_TOPIC, pending_message_buffer, pending_message_length, SPOTFLOW_MQTT_CONFIG_CBOR_D2C_TOPIC_QOS);
 
     if(rc < 0)
     {
