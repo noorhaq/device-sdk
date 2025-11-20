@@ -17,6 +17,8 @@ int spotflow_mqtt_subscribe(esp_mqtt_client_handle_t client, const char *topic, 
 void spotflow_mqtt_handle_data(esp_mqtt_event_handle_t event);
 void spotflow_mqtt_on_message(const char *topic, int topic_len,
                               const uint8_t *data, int data_len);
+int spotflow_mqtt_publish_messgae(const char *topic, const char *data, int len, int qos);
+
 #ifdef __cplusplus
 }
 #endif

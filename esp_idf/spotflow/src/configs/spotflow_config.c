@@ -5,6 +5,7 @@
 #include "configs/spotflow_config.h"
 #include "configs/spotflow_config_cbor.h"
 #include "configs/spotflow_config_persistance.h"
+#include "configs/spotflow_config_net.h"
 
 void spotflow_config_init()
 {
@@ -34,11 +35,14 @@ void spotflow_config_desired_message(const uint8_t* payload, int len)
 	}
 
 	SPOTFLOW_LOG("Minimal log severity %d, desired config version %d \n\n", desired_msg.minimal_log_severity, desired_msg.minimal_log_severity);
-	// struct spotflow_config_reported_msg reported_msg = {
-	// 	.contains_acked_desired_config_version = true,
-	// 	.acked_desired_config_version = desired_msg.desired_config_version,
-	// };
+	struct spotflow_config_reported_msg reported_msg = {
+		.flags = SPOTFLOW_REPORTED_FLAG_ACKED_DESIRED_CONFIG_VERSION,
+		.acked_desired_config_version = desired_msg.desired_config_version,
+	};
 
+	reported_msg.flags |= SPOTFLOW_REPORTED_FLAG_COMPILED_MINIMAL_LOG_SEVERITY | SPOTFLOW_REPORTED_FLAG_MINIMAL_LOG_SEVERITY;
+	reported_msg.minimal_log_severity = 40;	// of our backend
+	reported_msg.compiled_minimal_log_severity = 4; // of compiler
 	// struct spotflow_config_persisted_settings settings_to_persist = { 0 };
 
 	// if (desired_msg.flags & SPOTFLOW_REPORTED_FLAG_MINIMAL_LOG_SEVERITY) {
@@ -55,9 +59,9 @@ void spotflow_config_desired_message(const uint8_t* payload, int len)
 
 	// spotflow_config_persistence_try_save(&settings_to_persist);
 
-	// rc = spotflow_config_prepare_pending_message(&reported_msg);
-	// if (rc < 0) {
-	// 	LOG_ERR("Failed to prepare reported configuration response message: %d", rc);
-	// 	return;
-	// }
+	rc = spotflow_config_prepare_pending_message(&reported_msg);
+	if (rc < 0) {
+		SPOTFLOW_LOG("Failed to prepare reported configuration response message: %d", rc);
+		return;
+	}
 }

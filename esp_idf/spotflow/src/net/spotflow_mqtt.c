@@ -153,6 +153,7 @@ void spotflow_mqtt_publish(void* pvParameters)
                 // If no coredump pending, send regular log messages
                 else 
 #endif
+                spotflow_config_send_pending_message();
 				if (spotflow_queue_read(&msg)) {
                     int msg_id = esp_mqtt_client_publish(
                         spotflow_client,
@@ -300,4 +301,25 @@ void spotflow_mqtt_on_message(const char *topic, int topic_len,
 
     // Unknown topic
     SPOTFLOW_LOG("WARNING: Unhandled topic: %.*s", topic_len, topic);
+}
+
+
+int spotflow_mqtt_publish_messgae(const char *topic, const char *data, int len, int qos)
+{
+    int msg_id = esp_mqtt_client_publish(
+                        spotflow_client,
+                        topic,
+                        data,
+                        len,
+                        qos,
+                        0
+                    );
+
+                    if (msg_id < 0) {
+                        SPOTFLOW_LOG("Error %d occurred sending MQTT (log). Retrying", msg_id);
+                        return -1;
+                    } else {
+                        SPOTFLOW_LOG("Log message sent successfully topic %s. Freeing queue entry. \n", data);
+                        return 0;
+                    }
 }

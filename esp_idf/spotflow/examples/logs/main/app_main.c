@@ -39,26 +39,26 @@ void app_main(void)
 	int test_num = 1;
 	while (1) {
 		{
-			ESP_LOGI(TAG, "Info log message works");
-			ESP_LOGD(TAG, "Debug log message works");
-			ESP_LOGE(TAG, "Debug log message works");
-			ESP_LOGW(TAG, "Warning log message works");
-			ESP_LOGV(TAG, "Verbose log message works");
+			// ESP_LOGI(TAG, "Info log message works");
+			// ESP_LOGD(TAG, "Debug log message works");
+			// ESP_LOGE(TAG, "Debug log message works");
+			// ESP_LOGW(TAG, "Warning log message works");
+			// ESP_LOGV(TAG, "Verbose log message works");
 
 			//Testing long log messages. With differenet types
-			ESP_LOGI(TAG,
-				 "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abc"
-				 "defghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdef"
-				 "ghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghi"
-				 "jklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijkl"
-				 "mnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmno"
-				 "pqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqr"
-				 "stuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
+			// ESP_LOGI(TAG,
+			// 	 "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abc"
+			// 	 "defghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdef"
+			// 	 "ghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghi"
+			// 	 "jklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijkl"
+			// 	 "mnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmno"
+			// 	 "pqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789abcdefghijklmnopqr"
+			// 	 "stuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789");
 
-			ESP_LOGW(TAG, "Test Number. %d", test_num++);
+			// ESP_LOGW(TAG, "Test Number. %d", test_num++);
 			ESP_LOGI(TAG, "[APP] Free memory: %" PRIu32 " bytes",
 				 esp_get_free_heap_size());
 		}
-		vTaskDelay(5000/portTICK_PERIOD_MS); // Delay for 5s
+		vTaskDelay(50000/portTICK_PERIOD_MS); // Delay for 5s
 	}
 }
