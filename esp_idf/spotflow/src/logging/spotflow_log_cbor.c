@@ -4,6 +4,7 @@
 #include "logging/spotflow_log_cbor.h"
 #include "logging/spotflow_log_queue.h"
 #include "net/spotflow_mqtt.h"
+#include "esp_log_level.h"
 #include "cbor.h"
 
 /* optimized property keys */
@@ -153,5 +154,39 @@ void spotflow_log_cbor_send(const char* fmt, char* buffer, const char log_severi
 
 		spotflow_queue_push(clog_cbor, len);
 		free(clog_cbor);
+	}
+}
+
+
+uint32_t spotflow_cbor_convert_log_level_to_severity(uint8_t lvl)
+{
+	switch (lvl) {
+	case ESP_LOG_ERROR:
+		return LOG_SEVERITY_ERROR;
+	case ESP_LOG_WARN:
+		return LOG_SEVERITY_WARN;
+	case ESP_LOG_INFO:
+		return LOG_SEVERITY_INFO;
+	case ESP_LOG_DEBUG:
+		return LOG_SEVERITY_DEBUG;
+	default:
+		return 0; /* unknown level */
+	}
+}
+
+uint8_t spotflow_cbor_convert_severity_to_log_level(uint32_t severity)
+{
+	switch (severity) {
+	case 70:
+	case 60:
+		return LOG_LEVEL_ERR;
+	case 50:
+		return LOG_LEVEL_WRN;
+	case 40:
+		return LOG_LEVEL_INF;
+	case 30:
+		return LOG_LEVEL_DBG;
+	default:
+		return LOG_LEVEL_DBG;
 	}
 }

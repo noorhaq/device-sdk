@@ -2,6 +2,7 @@
 #include <stdint.h>
 
 #include "logging/spotflow_log_backend.h"
+#include "logging/spotflow_log_cbor.h"
 #include "configs/spotflow_config.h"
 #include "configs/spotflow_config_cbor.h"
 #include "configs/spotflow_config_persistance.h"
@@ -9,16 +10,39 @@
 
 void spotflow_config_init()
 {
-	// struct spotflow_config_persisted_settings persisted_settings;
+	struct spotflow_config_persisted_settings persisted_settings;
 
-	// spotflow_config_persistence_try_init();
-	// spotflow_config_persistence_try_load(&persisted_settings);
+	spotflow_config_persistence_try_init();
+	spotflow_config_persistence_try_load(&persisted_settings);
 
-	// if ((persisted_settings.flags & SPOTFLOW_REPORTED_FLAG_MINIMAL_LOG_SEVERITY) != 0) {
-	// 	spotflow_config_init_sent_log_level(persisted_settings.sent_log_level);
-	// } else {
-	// 	spotflow_config_init_sent_log_level_default();
-	// }
+	if ((persisted_settings.flags & SPOTFLOW_REPORTED_FLAG_MINIMAL_LOG_SEVERITY) != 0) {
+		spotflow_config_init_sent_log_level(persisted_settings.sent_log_level);
+	} else {
+		spotflow_config_init_sent_log_level_default();
+	}
+}
+
+int spotflow_config_init_session()
+{
+	struct spotflow_config_reported_msg reported_msg = {
+		.contains_acked_desired_config_version = false,
+	};
+	add_log_severity_to_reported_msg(&reported_msg);
+
+	int rc = spotflow_config_prepare_pending_message(&reported_msg);
+	if (rc < 0) {
+		LOG_ERR("Failed to prepare initial reported configuration response message: %d",
+			rc);
+		return rc;
+	}
+
+	rc = spotflow_mqtt_request_config_subscription(handle_desired_msg);
+	if (rc < 0) {
+		LOG_ERR("Failed to request subscription to configuration topic: %d", rc);
+		return rc;
+	}
+
+	return 0;
 }
 
 void spotflow_config_desired_message(const uint8_t* payload, int len)

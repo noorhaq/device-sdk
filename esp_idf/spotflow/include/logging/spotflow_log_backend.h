@@ -15,6 +15,7 @@ struct message_metadata {
 };
 
 int spotflow_log_backend(const char* fmt, va_list args);
+void spotflow_log_backend_try_set_runtime_filter(uint8_t level, ...);
 
 #if CONFIG_SPOTFLOW_DEBUG_MESSAGE_TERMINAL
 
