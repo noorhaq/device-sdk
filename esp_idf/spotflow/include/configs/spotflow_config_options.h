@@ -11,6 +11,7 @@ uint8_t spotflow_config_get_sent_log_level();
 void spotflow_config_init_sent_log_level_default();
 void spotflow_config_init_sent_log_level(uint8_t level);
 void spotflow_config_set_sent_log_level(uint8_t level);
+void spotflow_config_init_sent_log_level_default();
 
 #ifdef __cplusplus
 }

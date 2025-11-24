@@ -105,3 +105,5 @@ menu "Spotflow"
 		- 4 DEBUG, send LOG_DBG in addition to previous level
     
 endmenu
+
+CONFIG_SPOTFLOW_LOG_BACKEND_SET_RUNTIME_FILTERING=y

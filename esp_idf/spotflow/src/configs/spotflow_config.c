@@ -25,20 +25,14 @@ void spotflow_config_init()
 int spotflow_config_init_session()
 {
 	struct spotflow_config_reported_msg reported_msg = {
-		.contains_acked_desired_config_version = false,
+		.flags = 0,
 	};
-	add_log_severity_to_reported_msg(&reported_msg);
+	// add_log_severity_to_reported_msg(&reported_msg);
 
 	int rc = spotflow_config_prepare_pending_message(&reported_msg);
 	if (rc < 0) {
-		LOG_ERR("Failed to prepare initial reported configuration response message: %d",
+		SPOTFLOW_LOG("Failed to prepare initial reported configuration response message: %d",
 			rc);
-		return rc;
-	}
-
-	rc = spotflow_mqtt_request_config_subscription(handle_desired_msg);
-	if (rc < 0) {
-		LOG_ERR("Failed to request subscription to configuration topic: %d", rc);
 		return rc;
 	}
 

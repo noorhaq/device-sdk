@@ -178,15 +178,16 @@ uint8_t spotflow_cbor_convert_severity_to_log_level(uint32_t severity)
 {
 	switch (severity) {
 	case 70:
-	case 60:
-		return LOG_LEVEL_ERR;
-	case 50:
-		return LOG_LEVEL_WRN;
-	case 40:
-		return LOG_LEVEL_INF;
-	case 30:
-		return LOG_LEVEL_DBG;
+		return ESP_LOG_ERROR;
+	case ESP_LOG_ERROR:
+		return ESP_LOG_ERROR;
+	case ESP_LOG_WARN:
+		return ESP_LOG_WARN;
+	case ESP_LOG_INFO:
+		return ESP_LOG_INFO;
+	case ESP_LOG_DEBUG:
+		return ESP_LOG_DEBUG;
 	default:
-		return LOG_LEVEL_DBG;
+		return ESP_LOG_DEBUG;
 	}
 }
