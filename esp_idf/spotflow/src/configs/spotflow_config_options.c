@@ -16,7 +16,7 @@ uint8_t spotflow_config_get_sent_log_level()
 void spotflow_config_init_sent_log_level(uint8_t level)
 {
 	sent_log_level = level;
-	LOG_INF("Initialized sent log level to %d", sent_log_level);
+	SPOTFLOW_LOG("Initialized sent log level to %d", sent_log_level);
 
 	spotflow_log_backend_try_set_runtime_filter(sent_log_level);
 }
