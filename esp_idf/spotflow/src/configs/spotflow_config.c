@@ -55,7 +55,6 @@ void spotflow_config_desired_message(const uint8_t* payload, int len)
 		SPOTFLOW_LOG("decode successful\n");
 	}
 
-	SPOTFLOW_LOG("Minimal log severity %lu, desired config version %lu \n\n", desired_msg.minimal_log_severity, desired_msg.minimal_log_severity);
 	struct spotflow_config_reported_msg reported_msg = {
 		.flags = SPOTFLOW_REPORTED_FLAG_ACKED_DESIRED_CONFIG_VERSION,
 		.acked_desired_config_version = desired_msg.desired_config_version,
@@ -79,7 +78,8 @@ void spotflow_config_desired_message(const uint8_t* payload, int len)
 	}
 
 	spotflow_config_persistence_try_save(&settings_to_persist);
-
+	
+	SPOTFLOW_LOG("Reported log severity %lu, desired config version %lu \n\n", reported_msg.minimal_log_severity, desired_msg.minimal_log_severity);
 	rc = spotflow_config_prepare_pending_message(&reported_msg);
 	if (rc < 0) {
 		SPOTFLOW_LOG("Failed to prepare reported configuration response message: %d", rc);
@@ -98,5 +98,5 @@ static void add_log_severity_to_reported_msg(struct spotflow_config_reported_msg
 
 	reported_msg->flags |= SPOTFLOW_REPORTED_FLAG_COMPILED_MINIMAL_LOG_SEVERITY;
 	reported_msg->compiled_minimal_log_severity =
-	    spotflow_cbor_convert_log_level_to_severity(4);
+	    spotflow_cbor_convert_log_level_to_severity(3);
 }

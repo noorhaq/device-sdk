@@ -137,7 +137,7 @@ void spotflow_log_backend_try_set_runtime_filter(uint8_t level, ...) {
 		esp_log_level_set("*", level);  // Set log level for all
     } else {
         // Otherwise, set the log level for the specified tag
-        esp_log_level_set(tag, level);  // Set log level for the provided tag
+        esp_log_level_set("*", level);  // Set log level for the provided tag
     }
 
     va_end(args);  // End variadic argument processing
