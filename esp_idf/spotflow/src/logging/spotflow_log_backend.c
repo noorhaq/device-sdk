@@ -126,6 +126,12 @@ int spotflow_log_backend(const char* fmt, va_list args)
 	return len;
 }
 
+/**
+ * @brief Set the value at low level such that device doesn't generate the logs
+ * 
+ * @param level 
+ * @param ... 
+ */
 void spotflow_log_backend_try_set_runtime_filter(uint8_t level, ...) {
 #if CONFIG_SPOTFLOW_LOG_BACKEND_SET_RUNTIME_FILTERING
 	va_list args;

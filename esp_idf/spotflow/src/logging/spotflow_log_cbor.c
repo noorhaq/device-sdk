@@ -3,6 +3,7 @@
 #include "logging/spotflow_log_backend.h"
 #include "logging/spotflow_log_cbor.h"
 #include "logging/spotflow_log_queue.h"
+#include "configs/spotflow_config_options.h"
 #include "net/spotflow_mqtt.h"
 #include "esp_log_level.h"
 #include "cbor.h"
@@ -43,6 +44,7 @@ typedef enum {
 // 	SPOTFLOW_LOG("\n");
 // }
 
+static uint8_t spotflow_log_cbor_convert_char_log_lvl(const char lvl);
 /**
  * @brief To create the message format for logs in CBOR format
  * 
@@ -126,29 +128,14 @@ void spotflow_log_cbor_send(const char* fmt, char* buffer, const char log_severi
 		   const struct message_metadata* metadata)
 {
 	size_t len = strlen(buffer);
-	uint8_t severity = 0;
-	if (len > 0 && len < CONFIG_SPOTFLOW_LOG_BUFFER_SIZE) {
-		switch (log_severity) {
-		case 'E':
-			severity = LOG_SEVERITY_ERROR;
-			break; //Error
-		case 'W':
-			severity = LOG_SEVERITY_WARN;
-			break; //Warning
-		case 'I':
-			severity = LOG_SEVERITY_INFO;
-			break; //Info
-		case 'D':
-			severity = LOG_SEVERITY_DEBUG;
-			break; //Debug
-		case 'V':
-			severity = LOG_SEVERITY_DEBUG;
-			break; //Verbose right now set to debug
-		default:
-			severity = 0x0;
-			break; //In case no log type set it to 0, unknown level
-		}
+	uint8_t severity = spotflow_log_cbor_convert_char_log_lvl(log_severity);
+	
+	if(spotflow_cbor_convert_log_level_to_severity(severity) <= spotflow_config_get_sent_log_level())
+	{
+		return;
+	}
 
+	if (len > 0 && len < CONFIG_SPOTFLOW_LOG_BUFFER_SIZE) {
 		uint8_t* clog_cbor =
 		    spotflow_log_cbor(fmt, buffer, severity, &len, metadata); // It reuses the length
 
@@ -157,7 +144,12 @@ void spotflow_log_cbor_send(const char* fmt, char* buffer, const char log_severi
 	}
 }
 
-
+/**
+ * @brief Convert log level to Cloud severity values
+ * 
+ * @param lvl 
+ * @return uint32_t 
+ */
 uint32_t spotflow_cbor_convert_log_level_to_severity(uint8_t lvl)
 {
 	switch (lvl) {
@@ -174,6 +166,12 @@ uint32_t spotflow_cbor_convert_log_level_to_severity(uint8_t lvl)
 	}
 }
 
+/**
+ * @brief Convert cloud severity values to log level
+ * 
+ * @param severity 
+ * @return uint8_t 
+ */
 uint8_t spotflow_cbor_convert_severity_to_log_level(uint32_t severity)
 {
 	switch (severity) {
@@ -190,4 +188,34 @@ uint8_t spotflow_cbor_convert_severity_to_log_level(uint32_t severity)
 	default:
 		return ESP_LOG_DEBUG;
 	}
+}
+
+/**
+ * @brief Convert the Char value we get from the log to ESP LOG LEVEL
+ * 
+ * @param lvl 
+ * @return uint8_t 
+ */
+uint8_t spotflow_log_cbor_convert_char_log_lvl(const char lvl)
+{
+	switch (lvl) {
+		case 'E':
+			return LOG_SEVERITY_ERROR;
+			break; //Error
+		case 'W':
+			return LOG_SEVERITY_WARN;
+			break; //Warning
+		case 'I':
+			return LOG_SEVERITY_INFO;
+			break; //Info
+		case 'D':
+			return LOG_SEVERITY_DEBUG;
+			break; //Debug
+		case 'V':
+			return LOG_SEVERITY_DEBUG;
+			break; //Verbose right now set to debug
+		default:
+			return 0;
+			break; //In case no log type set it to 0, unknown level
+		}
 }
