@@ -129,8 +129,9 @@ void spotflow_log_cbor_send(const char* fmt, char* buffer, const char log_severi
 {
 	size_t len = strlen(buffer);
 	uint8_t severity = spotflow_log_cbor_convert_char_log_lvl(log_severity);
-	
-	if(spotflow_cbor_convert_log_level_to_severity(severity) <= spotflow_config_get_sent_log_level())
+	int tmp_log_level = spotflow_cbor_convert_severity_to_log_level(severity);
+	int tmp_get_sent_log = spotflow_config_get_sent_log_level();
+	if(!(tmp_log_level <= tmp_get_sent_log))
 	{
 		return;
 	}

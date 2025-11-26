@@ -39,10 +39,10 @@ void app_main(void)
 	int test_num = 1;
 	while (1) {
 		{
-			// ESP_LOGI(TAG, "Info log message works");
-			// ESP_LOGD(TAG, "Debug log message works");
-			// ESP_LOGE(TAG, "Debug log message works");
-			// ESP_LOGW(TAG, "Warning log message works");
+			ESP_LOGI(TAG, "Info log message works");
+			ESP_LOGD(TAG, "Debug log message works");
+			ESP_LOGE(TAG, "Error log message works");
+			ESP_LOGW(TAG, "Warning log message works");
 			// ESP_LOGV(TAG, "Verbose log message works");
 
 			//Testing long log messages. With differenet types
