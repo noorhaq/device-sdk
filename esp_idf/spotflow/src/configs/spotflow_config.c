@@ -11,6 +11,10 @@
 
 static void add_log_severity_to_reported_msg(struct spotflow_config_reported_msg* reported_msg);
 
+/**
+ * @brief Initilize the cloud configurable log level.
+ *
+ */
 void spotflow_config_init()
 {
 	struct spotflow_config_persisted_settings persisted_settings;
@@ -25,6 +29,11 @@ void spotflow_config_init()
 	}
 }
 
+/**
+ * @brief Initialize the sesson and send a intiail message with current configurations.
+ *
+ * @return int
+ */
 int spotflow_config_init_session()
 {
 	struct spotflow_config_reported_msg reported_msg = {
@@ -42,6 +51,12 @@ int spotflow_config_init_session()
 	return 0;
 }
 
+/**
+ * @brief Receive the log level from cloud.
+ *
+ * @param payload
+ * @param len
+ */
 void spotflow_config_desired_message(const uint8_t* payload, int len)
 {
 	struct spotflow_config_desired_msg desired_msg;
@@ -59,9 +74,6 @@ void spotflow_config_desired_message(const uint8_t* payload, int len)
 		.acked_desired_config_version = desired_msg.desired_config_version,
 	};
 
-	// reported_msg.flags |= SPOTFLOW_REPORTED_FLAG_COMPILED_MINIMAL_LOG_SEVERITY | SPOTFLOW_REPORTED_FLAG_MINIMAL_LOG_SEVERITY;
-	// reported_msg.minimal_log_severity = 40;	// of our backend
-	// reported_msg.compiled_minimal_log_severity = 4; // of compiler
 	struct spotflow_config_persisted_settings settings_to_persist = { 0 };
 
 	if (desired_msg.flags & SPOTFLOW_REPORTED_FLAG_MINIMAL_LOG_SEVERITY) {
@@ -87,6 +99,11 @@ void spotflow_config_desired_message(const uint8_t* payload, int len)
 	}
 }
 
+/**
+ * @brief Add current compiled maximum log level and the current log severity.
+ *
+ * @param reported_msg
+ */
 static void add_log_severity_to_reported_msg(struct spotflow_config_reported_msg* reported_msg)
 {
 	uint8_t sent_log_level = spotflow_config_get_sent_log_level();
