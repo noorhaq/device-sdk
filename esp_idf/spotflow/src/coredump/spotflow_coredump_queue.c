@@ -17,36 +17,36 @@ static QueueHandle_t queue_handle = NULL;
 #define COREDUMPS_OVERHEAD 64
 
 bool coredump_found = false;
+queue_msg_t qmsg;
 /**
  * @brief To Add a message in Queue
- * 
- * @param msg Log Message 
+ *
+ * @param msg Log Message
  */
 int8_t spotflow_queue_coredump_push(uint8_t* msg, size_t len)
 {
-	queue_msg_t qmsg;
 	qmsg.ptr = malloc(len);
 	qmsg.len = len;
 
 	if (!qmsg.ptr) {
-		SPOTFLOW_LOG("Heap allocation failed");
+		SPOTFLOW_LOG("Heap allocation failed for Coredump push.\n");
 		return -1;
 	}
 
 	memcpy(qmsg.ptr, msg, len);
 	// Try to enqueue
-	if (xQueueSend(queue_handle, &qmsg, 0) != pdPASS) {
-        free(qmsg.ptr);
-        return -1; //Could not add wait for it to be freed.
+	if (xQueueSend(queue_handle, &qmsg, portMAX_DELAY) != pdPASS) {
+		free(qmsg.ptr);
+		return -1; //Could not add wait for it to be freed.
 	}
 
 	SPOTFLOW_LOG("Message Added.\n");
-    return 0;
+	return 0;
 }
 
 /**
  * @brief Read next message from queue (non-blocking)
- * 
+ *
  * @param out Pointer to structure receiving ptr+len
  * @return true if a message was read, false if queue empty
  */
@@ -54,8 +54,8 @@ int8_t spotflow_queue_coredump_push(uint8_t* msg, size_t len)
 bool spotflow_queue_coredump_read(queue_msg_t* out)
 {
 	if (queue_handle == NULL || out == NULL) {
-       return false;
-    }
+		return false;
+	}
 
 	if (xQueueReceive(queue_handle, out, 0) == pdPASS)
 		return true;
@@ -64,8 +64,8 @@ bool spotflow_queue_coredump_read(queue_msg_t* out)
 
 /**
  * @brief Free the queue message buffer
- * 
- * @param msg 
+ *
+ * @param msg
  */
 void spotflow_queue_coredump_free(queue_msg_t* msg)
 {
@@ -78,12 +78,13 @@ void spotflow_queue_coredump_free(queue_msg_t* msg)
 
 /**
  * @brief Initialize the Queue to save the messgaes
- * 
+ *
  */
 void spotflow_queue_coredump_init(void)
 {
 	coredump_found = true;
-	queue_handle = xQueueCreate(CONFIG_SPOTFLOW_COREDUMPS_CHUNK_SIZE + COREDUMPS_OVERHEAD, sizeof(queue_msg_t));
+	queue_handle = xQueueCreate(CONFIG_SPOTFLOW_COREDUMPS_CHUNK_SIZE + COREDUMPS_OVERHEAD,
+				    sizeof(queue_msg_t));
 	if (queue_handle == NULL) {
 		SPOTFLOW_LOG("Failed to create queue");
 	}
