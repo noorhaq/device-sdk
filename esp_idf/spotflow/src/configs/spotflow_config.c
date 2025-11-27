@@ -114,5 +114,5 @@ static void add_log_severity_to_reported_msg(struct spotflow_config_reported_msg
 
 	reported_msg->flags |= SPOTFLOW_REPORTED_FLAG_COMPILED_MINIMAL_LOG_SEVERITY;
 	reported_msg->compiled_minimal_log_severity =
-	    spotflow_cbor_convert_log_level_to_severity(3);
+	    spotflow_cbor_convert_log_level_to_severity(CONFIG_LOG_MAXIMUM_LEVEL);
 }

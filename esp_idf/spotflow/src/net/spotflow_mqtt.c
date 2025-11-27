@@ -130,28 +130,27 @@ void spotflow_mqtt_publish(void* pvParameters)
 		uint32_t notify_value = 0;
 		BaseType_t notify_result =
 		    xTaskNotifyWait(0, UINT32_MAX, &notify_value, portMAX_DELAY);
+			SPOTFLOW_LOG("Received notification value: %lu\n", notify_value);
 		// Only proceed if the outbox_size i.e. current message is smaller than overall mqtt_buffer.
 		if ((esp_mqtt_client_get_outbox_size(spotflow_client) <
 		     CONFIG_SPOTFLOW_CBOR_LOG_MAX_LEN)) {
 #ifdef CONFIG_ESP_COREDUMP_ENABLE
 			// Try to send coredump messages first
-			if (notify_result & SPOTFLOW_MQTT_NOTIFY_COURDUMP) {
+			if (notify_value & SPOTFLOW_MQTT_NOTIFY_COURDUMP) {
 				spotflow_coredump_send_message();
 			}
 			// If no coredump pending, send regular log messages
 #endif
-			if (notify_result & SPOTFLOW_MQTT_NOTIFY_CONFIG_MSG) {
+			if (notify_value & SPOTFLOW_MQTT_NOTIFY_CONFIG_MSG) {
 				spotflow_config_send_pending_message();
 			}
-			if (notify_result & SPOTFLOW_MQTT_NOTIFY_LOGS) {
+			if (notify_value & SPOTFLOW_MQTT_NOTIFY_LOGS) {
 				spotflow_logging_send_message();
 			}
 		} else {
 			SPOTFLOW_LOG("MQTT outbox not empty; waiting for messages to be sent.\n");
 			SPOTFLOW_LOG("MQTT Size %d \n",
 				     esp_mqtt_client_get_outbox_size(spotflow_client));
-			vTaskDelay(pdMS_TO_TICKS(500));
-			// Add a small delay here so CPU doesn't hog the other tasks before retrying
 		}
 	}
 }

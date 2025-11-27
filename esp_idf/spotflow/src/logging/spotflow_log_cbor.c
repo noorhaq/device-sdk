@@ -29,9 +29,9 @@ typedef enum {
 
 /**
  * @brief Debugging Function not to be used in Production
- * 
- * @param buf 
- * @param len 
+ *
+ * @param buf
+ * @param len
  */
 // static void print_cbor_hex(const uint8_t* buf, size_t len)
 // {
@@ -47,14 +47,14 @@ typedef enum {
 static uint8_t spotflow_log_cbor_convert_char_log_lvl(const char lvl);
 /**
  * @brief To create the message format for logs in CBOR format
- * 
- * @param body 
- * @param severity 
- * @param out_len 
- * @return uint8_t* 
+ *
+ * @param body
+ * @param severity
+ * @param out_len
+ * @return uint8_t*
  */
-uint8_t* spotflow_log_cbor(const char* log_template, char* body, const uint8_t severity, size_t* out_len,
-		  const struct message_metadata* metadata)
+uint8_t* spotflow_log_cbor(const char* log_template, char* body, const uint8_t severity,
+			   size_t* out_len, const struct message_metadata* metadata)
 {
 	// Buffer to create array to cointain several items
 	CborEncoder array_encoder;
@@ -121,35 +121,33 @@ uint8_t* spotflow_log_cbor(const char* log_template, char* body, const uint8_t s
 
 /**
  * @brief Form and send the CBOR parameters
- * 
- * @param buffer 
+ *
+ * @param buffer
  */
 void spotflow_log_cbor_send(const char* fmt, char* buffer, const char log_severity,
-		   const struct message_metadata* metadata)
+			    const struct message_metadata* metadata)
 {
 	size_t len = strlen(buffer);
 	uint8_t severity = spotflow_log_cbor_convert_char_log_lvl(log_severity);
 	int tmp_log_level = spotflow_cbor_convert_severity_to_log_level(severity);
 	int tmp_get_sent_log = spotflow_config_get_sent_log_level();
-	if(!(tmp_log_level <= tmp_get_sent_log))
-	{
-		return;
-	}
+	if ((tmp_log_level <= tmp_get_sent_log)) {
+		if (len > 0 && len < CONFIG_SPOTFLOW_LOG_BUFFER_SIZE) {
+			uint8_t* clog_cbor = spotflow_log_cbor(fmt, buffer, severity, &len,
+							       metadata); // It reuses the length
 
-	if (len > 0 && len < CONFIG_SPOTFLOW_LOG_BUFFER_SIZE) {
-		uint8_t* clog_cbor =
-		    spotflow_log_cbor(fmt, buffer, severity, &len, metadata); // It reuses the length
-
-		spotflow_queue_push(clog_cbor, len);
-		free(clog_cbor);
+			spotflow_queue_push(clog_cbor, len);
+			spotflow_mqtt_notify_action(SPOTFLOW_MQTT_NOTIFY_LOGS);
+			free(clog_cbor);
+		}
 	}
 }
 
 /**
  * @brief Convert log level to Cloud severity values
- * 
- * @param lvl 
- * @return uint32_t 
+ *
+ * @param lvl
+ * @return uint32_t
  */
 uint32_t spotflow_cbor_convert_log_level_to_severity(uint8_t lvl)
 {
@@ -169,9 +167,9 @@ uint32_t spotflow_cbor_convert_log_level_to_severity(uint8_t lvl)
 
 /**
  * @brief Convert cloud severity values to log level
- * 
- * @param severity 
- * @return uint8_t 
+ *
+ * @param severity
+ * @return uint8_t
  */
 uint8_t spotflow_cbor_convert_severity_to_log_level(uint32_t severity)
 {
@@ -193,30 +191,30 @@ uint8_t spotflow_cbor_convert_severity_to_log_level(uint32_t severity)
 
 /**
  * @brief Convert the Char value we get from the log to ESP LOG LEVEL
- * 
- * @param lvl 
- * @return uint8_t 
+ *
+ * @param lvl
+ * @return uint8_t
  */
 uint8_t spotflow_log_cbor_convert_char_log_lvl(const char lvl)
 {
 	switch (lvl) {
-		case 'E':
-			return LOG_SEVERITY_ERROR;
-			break; //Error
-		case 'W':
-			return LOG_SEVERITY_WARN;
-			break; //Warning
-		case 'I':
-			return LOG_SEVERITY_INFO;
-			break; //Info
-		case 'D':
-			return LOG_SEVERITY_DEBUG;
-			break; //Debug
-		case 'V':
-			return LOG_SEVERITY_DEBUG;
-			break; //Verbose right now set to debug
-		default:
-			return 0;
-			break; //In case no log type set it to 0, unknown level
-		}
+	case 'E':
+		return LOG_SEVERITY_ERROR;
+		break; //Error
+	case 'W':
+		return LOG_SEVERITY_WARN;
+		break; //Warning
+	case 'I':
+		return LOG_SEVERITY_INFO;
+		break; //Info
+	case 'D':
+		return LOG_SEVERITY_DEBUG;
+		break; //Debug
+	case 'V':
+		return LOG_SEVERITY_DEBUG;
+		break; //Verbose right now set to debug
+	default:
+		return 0;
+		break; //In case no log type set it to 0, unknown level
+	}
 }

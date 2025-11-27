@@ -4,7 +4,7 @@
 #include "net/spotflow_mqtt.h"
 #include "configs/spotflow_config_cbor.h"
 
-#define SPOTFLOW_MQTT_LOG_TOPIC "config-cbor-d2c"
+#define SPOTFLOW_MQTT_LOG_TOPIC "ingest-cbor"
 
 #define SPOTFLOW_MQTT_LOG_QOS 0
 

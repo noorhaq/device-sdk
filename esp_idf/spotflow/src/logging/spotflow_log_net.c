@@ -14,10 +14,10 @@ int spotflow_logging_send_message(void)
 		    );
 
 		if (msg_id < 0) {
-			SPOTFLOW_LOG("Error %d occurred sending MQTT (coredump). Retrying", msg_id);
+			SPOTFLOW_LOG("Error %d occurred sending MQTT (logging). Retrying", msg_id);
 			return msg_id;
 		} else {
-			SPOTFLOW_LOG("Coredump message sent successfully. Freeing queue entry.");
+			SPOTFLOW_LOG("Logging message sent successfully. Freeing queue entry.");
 			spotflow_queue_free(&msg);
 			return 0;
 		}
