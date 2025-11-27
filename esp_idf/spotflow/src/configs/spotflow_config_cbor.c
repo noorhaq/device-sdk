@@ -18,12 +18,12 @@
 #define UPDATE_REPORTED_CONFIGURATION_MESSAGE_TYPE 0x04
 
 /**
- * @brief 
- * 
- * @param payload 
- * @param len 
- * @param msg 
- * @return int 
+ * @brief
+ *
+ * @param payload
+ * @param len
+ * @param msg
+ * @return int
  */
 int spotflow_config_cbor_decode_desired(uint8_t* payload, size_t len,
 					struct spotflow_config_desired_msg* msg)
@@ -108,13 +108,13 @@ int spotflow_config_cbor_decode_desired(uint8_t* payload, size_t len,
 }
 
 /**
- * @brief 
- * 
- * @param msg 
- * @param buffer 
- * @param len 
- * @param encoded_len 
- * @return int 
+ * @brief
+ *
+ * @param msg
+ * @param buffer
+ * @param len
+ * @param encoded_len
+ * @return int
  */
 int spotflow_config_cbor_encode_reported(struct spotflow_config_reported_msg* msg, uint8_t* buffer,
 					 size_t len, size_t* encoded_len)

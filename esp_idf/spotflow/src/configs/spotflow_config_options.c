@@ -32,7 +32,7 @@ void spotflow_config_set_sent_log_level(uint8_t level)
 		return;
 	}
 
-    SPOTFLOW_LOG("Updated sent log level to %d (was %d)", level, sent_log_level);
+	SPOTFLOW_LOG("Updated sent log level to %d (was %d)", level, sent_log_level);
 	sent_log_level = level;
 
 	spotflow_log_backend_try_set_runtime_filter(level);

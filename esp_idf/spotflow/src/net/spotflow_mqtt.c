@@ -155,37 +155,22 @@ void spotflow_mqtt_publish(void* pvParameters)
 #endif
                 spotflow_config_send_pending_message();
 				if (spotflow_queue_read(&msg)) {
-                    int msg_id = esp_mqtt_client_publish(
-                        spotflow_client,
-                        "ingest-cbor",
-                        (const char*)msg.ptr,
-                        msg.len,
-                        1,
-                        0
-                    );
-
+                    int msg_id = spotflow_mqtt_publish_messgae("ingest-cbor",msg.ptr, msg.len, 0);
                     if (msg_id < 0) {
                         SPOTFLOW_LOG("Error %d occurred sending MQTT (log). Retrying", msg_id);
-                        vTaskDelay(pdMS_TO_TICKS(10)); // Backoff
                     } else {
                         SPOTFLOW_LOG("Log message sent successfully. Freeing queue entry. \n");
                         spotflow_queue_free(&msg);
-						vTaskDelay(pdMS_TO_TICKS(10)); //Give CPU few ticks
                     }
                 }
-                // Nothing to send
-                else {
-                    vTaskDelay(pdMS_TO_TICKS(50)); // Sleep if queues empty
-                }
-
             } else {
                 SPOTFLOW_LOG("MQTT outbox not empty; waiting for messages to be sent.\n");
 				SPOTFLOW_LOG("MQTT Size %d \n",esp_mqtt_client_get_outbox_size(spotflow_client));
-                vTaskDelay(pdMS_TO_TICKS(50));
+                vTaskDelay(pdMS_TO_TICKS(500));
             }
         } else {
             // MQTT not connected; wait and retry
-            vTaskDelay(pdMS_TO_TICKS(100));
+            vTaskDelay(pdMS_TO_TICKS(1000));
         }
     }
 }

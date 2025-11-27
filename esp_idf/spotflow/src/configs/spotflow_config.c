@@ -34,8 +34,8 @@ int spotflow_config_init_session()
 
 	int rc = spotflow_config_prepare_pending_message(&reported_msg);
 	if (rc < 0) {
-		SPOTFLOW_LOG("Failed to prepare initial reported configuration response message: %d",
-			rc);
+		SPOTFLOW_LOG(
+		    "Failed to prepare initial reported configuration response message: %d", rc);
 		return rc;
 	}
 
@@ -50,8 +50,7 @@ void spotflow_config_desired_message(const uint8_t* payload, int len)
 	if (rc < 0) {
 		SPOTFLOW_LOG("Failed to decode received desired configuration message: %d\n", rc);
 		return;
-	}
-	else {
+	} else {
 		SPOTFLOW_LOG("decode successful\n");
 	}
 
@@ -78,15 +77,15 @@ void spotflow_config_desired_message(const uint8_t* payload, int len)
 	}
 
 	spotflow_config_persistence_try_save(&settings_to_persist);
-	
-	SPOTFLOW_LOG("Reported log severity %lu, desired config version %lu \n\n", reported_msg.minimal_log_severity, desired_msg.minimal_log_severity);
+
+	SPOTFLOW_LOG("Reported log severity %lu, desired config version %lu \n\n",
+		     reported_msg.minimal_log_severity, desired_msg.minimal_log_severity);
 	rc = spotflow_config_prepare_pending_message(&reported_msg);
 	if (rc < 0) {
 		SPOTFLOW_LOG("Failed to prepare reported configuration response message: %d", rc);
 		return;
 	}
 }
-
 
 static void add_log_severity_to_reported_msg(struct spotflow_config_reported_msg* reported_msg)
 {

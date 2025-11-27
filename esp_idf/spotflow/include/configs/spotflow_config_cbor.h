@@ -12,33 +12,33 @@ extern "C" {
 #endif
 
 typedef enum {
-    SPOTFLOW_DESIRED_FLAG_MINIMAL_LOG_SEVERITY = 1 << 0,
+	SPOTFLOW_DESIRED_FLAG_MINIMAL_LOG_SEVERITY = 1 << 0,
 } spotflow_desired_flags_t;
 
 typedef enum {
-    SPOTFLOW_REPORTED_FLAG_MINIMAL_LOG_SEVERITY          = 1 << 0,
-    SPOTFLOW_REPORTED_FLAG_COMPILED_MINIMAL_LOG_SEVERITY = 1 << 1,
-    SPOTFLOW_REPORTED_FLAG_ACKED_DESIRED_CONFIG_VERSION  = 1 << 2,
+	SPOTFLOW_REPORTED_FLAG_MINIMAL_LOG_SEVERITY = 1 << 0,
+	SPOTFLOW_REPORTED_FLAG_COMPILED_MINIMAL_LOG_SEVERITY = 1 << 1,
+	SPOTFLOW_REPORTED_FLAG_ACKED_DESIRED_CONFIG_VERSION = 1 << 2,
 } spotflow_reported_flags_t;
 
 // Flags for desired
 #define SPOTFLOW_DESIRED_FLAG_MINIMAL_LOG_SEVERITY (1 << 0)
 
 // Flags for reported
-#define SPOTFLOW_REPORTED_FLAG_MINIMAL_LOG_SEVERITY          (1 << 0)
+#define SPOTFLOW_REPORTED_FLAG_MINIMAL_LOG_SEVERITY (1 << 0)
 #define SPOTFLOW_REPORTED_FLAG_COMPILED_MINIMAL_LOG_SEVERITY (1 << 1)
-#define SPOTFLOW_REPORTED_FLAG_ACKED_DESIRED_CONFIG_VERSION  (1 << 2)
+#define SPOTFLOW_REPORTED_FLAG_ACKED_DESIRED_CONFIG_VERSION (1 << 2)
 
 // set a flag msg.flags |= SPOTFLOW_REPORTED_FLAG_MINIMAL_LOG_SEVERITY;
 struct spotflow_config_desired_msg {
-    uint8_t flags;
+	uint8_t flags;
 	uint32_t minimal_log_severity;
 	uint64_t desired_config_version;
 };
 
 // clear a flag msg.flags &= ~SPOTFLOW_REPORTED_FLAG_ACKED_DESIRED_CONFIG_VERSION;
 struct spotflow_config_reported_msg {
-    uint8_t flags;
+	uint8_t flags;
 	uint32_t minimal_log_severity;
 	uint32_t compiled_minimal_log_severity;
 	uint64_t acked_desired_config_version;
